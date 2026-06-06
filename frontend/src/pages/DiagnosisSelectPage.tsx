@@ -32,7 +32,7 @@ export default function DiagnosisSelectPage() {
 
   return (
     <div className="w-full min-h-screen bg-[#F1F3F6]">
-      <div className="w-full max-w-[500px] mx-auto bg-white min-h-screen">
+      <div className="w-full max-w-[640px] mx-auto bg-white min-h-screen">
         <div className="px-5 pt-12 pb-6">
           <div className="flex items-center gap-3 mb-6">
             <button onClick={() => navigate('/')} className="p-2 -ml-2 text-[#666]">

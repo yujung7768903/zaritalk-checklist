@@ -29,7 +29,7 @@ export default function GlossaryPage() {
 
   return (
     <div className="w-full min-h-screen bg-[#F1F3F6]">
-      <div className="w-full max-w-[500px] mx-auto bg-white min-h-screen">
+      <div className="w-full max-w-[640px] mx-auto bg-white min-h-screen">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-white">
           <div className="flex items-center gap-3 px-4 pt-12 pb-3">

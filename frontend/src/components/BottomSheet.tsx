@@ -19,7 +19,7 @@ export default function BottomSheet({ open, onClose, title, children }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-[500px] bg-white rounded-t-[32px] h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-[640px] bg-white rounded-t-[32px] h-[90vh] flex flex-col">
         {/* 헤더 */}
         <div className={`relative flex flex-col items-center w-full px-[22px] pt-[32px] pb-[16px] shrink-0 ${title ? 'border-b border-[#F1F3F6]' : ''}`}>
           {title && (

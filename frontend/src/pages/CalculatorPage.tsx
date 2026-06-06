@@ -41,7 +41,7 @@ export default function CalculatorPage() {
 
   return (
     <div className="w-full min-h-screen bg-[#F1F3F6]">
-      <div className="w-full max-w-[500px] mx-auto bg-white min-h-screen">
+      <div className="w-full max-w-[640px] mx-auto bg-white min-h-screen">
         {/* Header */}
         <div className="bg-white px-4 pt-12 pb-4">
           <div className="flex items-center gap-3 mb-4">
