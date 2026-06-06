@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import BottomSheet from './BottomSheet'
 import ExternalLinkButton from './ExternalLinkButton'
 import type { ChecklistItem } from '../types/checklist'
@@ -10,27 +11,31 @@ interface Props {
 }
 
 export default function ChecklistItemDetail({ item, completed, onClose, onToggle }: Props) {
+  const [checkedIndexes, setCheckedIndexes] = useState<Set<number>>(new Set())
+
+  useEffect(() => {
+    setCheckedIndexes(new Set())
+  }, [item?.id])
+
   if (!item) return null
 
+  const toggleCheck = (i: number) =>
+    setCheckedIndexes(prev => {
+      const next = new Set(prev)
+      next.has(i) ? next.delete(i) : next.add(i)
+      return next
+    })
+
+  const title = (
+    <span>
+      {item.important && <span className="text-[#FF3B30] mr-1">⭐</span>}
+      {item.title}
+    </span>
+  )
+
   return (
-    <BottomSheet open={!!item} onClose={onClose}>
-      <div className="px-5 pb-8">
-        <div className="flex items-start justify-between gap-3 mb-5">
-          <h2 className="text-lg font-bold text-[#222] leading-snug flex-1">
-            {item.important && <span className="text-[#FF3B30] mr-1">⭐</span>}
-            {item.title}
-          </h2>
-          <button
-            onClick={() => { onToggle(); onClose() }}
-            className={`shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
-              completed
-                ? 'bg-[#F1F3F6] text-[#999]'
-                : 'bg-[#2C7FFF] text-white'
-            }`}
-          >
-            {completed ? '완료 취소' : '완료'}
-          </button>
-        </div>
+    <BottomSheet open={!!item} onClose={onClose} title={title}>
+      <div className="px-[22px] pt-5 pb-10">
 
         <div className="space-y-4">
           <section>
@@ -59,9 +64,25 @@ export default function ChecklistItemDetail({ item, completed, onClose, onToggle
             <p className="text-xs font-semibold text-[#999] uppercase tracking-wide mb-2">확인할 것</p>
             <ul className="space-y-2">
               {item.checks.map((c, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-[#333]">
-                  <span className="w-4 h-4 rounded border border-[#CDD1D5] shrink-0 bg-white" />
-                  {c}
+                <li
+                  key={i}
+                  className="flex items-center gap-2 text-sm cursor-pointer"
+                  onClick={() => toggleCheck(i)}
+                >
+                  <span className={`w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-colors ${
+                    checkedIndexes.has(i)
+                      ? 'bg-[#2C7FFF] border-[#2C7FFF]'
+                      : 'bg-white border-[#CDD1D5]'
+                  }`}>
+                    {checkedIndexes.has(i) && (
+                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                        <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </span>
+                  <span className={checkedIndexes.has(i) ? 'text-[#999] line-through' : 'text-[#333]'}>
+                    {c}
+                  </span>
                 </li>
               ))}
             </ul>

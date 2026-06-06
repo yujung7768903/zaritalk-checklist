@@ -10,7 +10,7 @@ interface Props {
 export default function ChecklistItem({ item, completed, onToggle, onDetail }: Props) {
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3.5 border-b border-[#F1F3F6] last:border-b-0 ${
+      className={`flex items-center gap-3 px-4 py-3.5 border-b border-[#F1F3F6] last:border-b-0 cursor-pointer ${
         completed ? 'bg-[#FAFBFC]' : 'bg-white'
       }`}
     >
