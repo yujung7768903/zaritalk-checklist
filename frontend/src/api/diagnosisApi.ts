@@ -24,6 +24,21 @@ export async function fetchMarketPrice(
   }
 }
 
+export async function fetchAvailableAreas(
+  sigunguCode: string,
+  bname: string,
+  housingType: string,
+): Promise<number[]> {
+  try {
+    const res = await axios.get(`${BASE_URL}/api/v1/molit/areas`, {
+      params: { sigunguCode, bname, housingType },
+    })
+    return res.data.areas ?? []
+  } catch {
+    return []
+  }
+}
+
 export async function saveDiagnosis(
   type: string,
   inputJson: string,

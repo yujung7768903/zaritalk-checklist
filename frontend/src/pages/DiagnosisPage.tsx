@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import type { DiagnosisType, HousingType, OwnedHomes, JeonseInput, MaemaeInput, MonthlyInput, JeonseResult, MaemaeResult, MonthlyResult } from '../types/diagnosis'
 import { calcJeonse, calcMaemae, calcMonthly, formatWon, parseNumeric, formatNumericInput } from '../utils/diagnosisCalc'
-import { fetchMarketPrice } from '../api/diagnosisApi'
+import { fetchMarketPrice, fetchAvailableAreas } from '../api/diagnosisApi'
 import AddressSearch from '../components/diagnosis/AddressSearch'
 import InfoTooltip from '../components/diagnosis/InfoTooltip'
 import GaugeBar from '../components/diagnosis/GaugeBar'
@@ -77,21 +77,34 @@ function SelectInput({ label, value, options, onChange }: {
   )
 }
 
-function AreaInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function AreaInput({ value, onChange, options }: { value: string; onChange: (v: string) => void; options?: number[] }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-xs text-[#666]">전용 면적</label>
-      <div className="flex items-center h-9 border border-[#E5E8EB] rounded-lg px-3 focus-within:border-[#2C7FFF] transition-colors bg-white">
-        <input
-          type="text"
-          inputMode="numeric"
+      {options && options.length > 0 ? (
+        <select
           value={value}
-          onChange={e => onChange(e.target.value.replace(/[^0-9.]/g, ''))}
-          placeholder="0"
-          className="flex-1 text-sm text-[#222] outline-none bg-transparent"
-        />
-        <span className="text-xs text-[#999] ml-1 shrink-0">㎡</span>
-      </div>
+          onChange={e => onChange(e.target.value)}
+          className="h-9 border border-[#E5E8EB] rounded-lg px-3 text-sm text-[#222] bg-white focus:outline-none focus:border-[#2C7FFF] transition-colors appearance-none cursor-pointer"
+        >
+          <option value="">선택</option>
+          {options.map(a => (
+            <option key={a} value={String(a)}>{a}㎡</option>
+          ))}
+        </select>
+      ) : (
+        <div className="flex items-center h-9 border border-[#E5E8EB] rounded-lg px-3 focus-within:border-[#2C7FFF] transition-colors bg-white">
+          <input
+            type="text"
+            inputMode="numeric"
+            value={value}
+            onChange={e => onChange(e.target.value.replace(/[^0-9.]/g, ''))}
+            placeholder="0"
+            className="flex-1 text-sm text-[#222] outline-none bg-transparent"
+          />
+          <span className="text-xs text-[#999] ml-1 shrink-0">㎡</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -346,15 +359,16 @@ export default function DiagnosisPage() {
   const resultRef = useRef<HTMLDivElement>(null)
 
   // 전세 상태
-  const [jDeposit,  setJDeposit]  = useState('')
-  const [jMortgage, setJMortgage] = useState('')
-  const [jHousing,  setJHousing]  = useState<HousingType>('apt')
-  const [jArea,     setJArea]     = useState('')
-  const [jMarket,   setJMarket]   = useState('')
-  const [jAddr,     setJAddr]     = useState<JeonseInput['address']>(null)
+  const [jDeposit,   setJDeposit]   = useState('')
+  const [jMortgage,  setJMortgage]  = useState('')
+  const [jHousing,   setJHousing]   = useState<HousingType>('apt')
+  const [jArea,      setJArea]      = useState('')
+  const [jAreaOpts,  setJAreaOpts]  = useState<number[]>([])
+  const [jMarket,    setJMarket]    = useState('')
+  const [jAddr,      setJAddr]      = useState<JeonseInput['address']>(null)
   const [jMarketSrc, setJMarketSrc] = useState<'api' | 'manual'>('manual')
-  const [jFetching, setJFetching] = useState(false)
-  const [jResult,   setJResult]   = useState<JeonseResult | null>(null)
+  const [jFetching,  setJFetching]  = useState(false)
+  const [jResult,    setJResult]    = useState<JeonseResult | null>(null)
 
   // 매매 상태
   const [mPrice,    setMPrice]    = useState('')
@@ -362,6 +376,7 @@ export default function DiagnosisPage() {
   const [mOwned,    setMOwned]    = useState<OwnedHomes>(0)
   const [mIncome,   setMIncome]   = useState('')
   const [mArea,     setMArea]     = useState('')
+  const [mAreaOpts, setMAreaOpts] = useState<number[]>([])
   const [mAddr,     setMAddr]     = useState<MaemaeInput['address']>(null)
   const [mResult,   setMResult]   = useState<MaemaeResult | null>(null)
 
@@ -388,16 +403,25 @@ export default function DiagnosisPage() {
     }
   }
 
-  const handleJAddr = (a: NonNullable<JeonseInput['address']>) => {
+  const handleJAddr = async (a: NonNullable<JeonseInput['address']>) => {
     setJAddr(a)
-    fetchMarket(a, jHousing, jArea)
+    setJArea('')
+    const areas = await fetchAvailableAreas(a.sigunguCode, a.bname, jHousing)
+    setJAreaOpts(areas)
+    if (areas.length === 1) {
+      setJArea(String(areas[0]))
+      fetchMarket(a, jHousing, String(areas[0]))
+    } else {
+      fetchMarket(a, jHousing, jArea)
+    }
   }
 
   const handleMAddr = async (a: NonNullable<MaemaeInput['address']>) => {
     setMAddr(a)
-    // 매매도 실거래가 조회
-    const res = await fetchMarketPrice(a.sigunguCode, a.bname, mHousing, parseFloat(mArea))
-    if (res) { /* result에 반영 */ }
+    setMArea('')
+    const areas = await fetchAvailableAreas(a.sigunguCode, a.bname, mHousing)
+    setMAreaOpts(areas)
+    if (areas.length === 1) setMArea(String(areas[0]))
   }
 
   const diagnoseJeonse = () => {
@@ -449,7 +473,7 @@ export default function DiagnosisPage() {
 
   return (
     <div className="w-full min-h-screen bg-[#F1F3F6]">
-      <div className="w-full max-w-[500px] mx-auto bg-white min-h-screen">
+      <div className="w-full max-w-[640px] mx-auto bg-white min-h-screen">
 
         {/* 헤더 */}
         <div className="sticky top-0 z-10 bg-white border-b border-[#F1F3F6]">
@@ -487,7 +511,7 @@ export default function DiagnosisPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <SelectInput label="주택 유형" value={jHousing} options={HOUSING_OPTIONS} onChange={v => setJHousing(v as HousingType)} />
-                      <AreaInput value={jArea} onChange={setJArea} />
+                      <AreaInput value={jArea} onChange={setJArea} options={jAreaOpts} />
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5 mb-1.5">
@@ -555,7 +579,7 @@ export default function DiagnosisPage() {
                       />
                       <NumInput label="연소득" value={mIncome} onChange={setMIncome} />
                     </div>
-                    <AreaInput value={mArea} onChange={setMArea} />
+                    <AreaInput value={mArea} onChange={setMArea} options={mAreaOpts} />
                     <button
                       onClick={diagnoseMaemae}
                       disabled={!canDiagnoseMaemae}
