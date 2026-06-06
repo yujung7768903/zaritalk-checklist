@@ -1,7 +1,7 @@
 package com.zaritalk.checklist.controller;
 
 import com.zaritalk.checklist.domain.Diagnosis;
-import com.zaritalk.checklist.dto.DiagnosisRequest;
+import com.zaritalk.checklist.dto.*;
 import com.zaritalk.checklist.service.DiagnosisService;
 import com.zaritalk.checklist.service.JwtService;
 import com.zaritalk.checklist.service.MolitApiService;
@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -21,8 +21,19 @@ public class DiagnosisController {
     private final MolitApiService  molitApiService;
     private final JwtService       jwtService;
 
+    @GetMapping("/molit/areas")
+    public ResponseEntity<AvailableAreasResponse> getAvailableAreas(
+            @RequestParam String sigunguCode,
+            @RequestParam String bname,
+            @RequestParam String housingType
+    ) {
+        List<Double> areas = molitApiService.fetchAvailableAreas(sigunguCode, bname, housingType);
+        if (areas.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new AvailableAreasResponse(areas));
+    }
+
     @GetMapping("/molit/transactions")
-    public ResponseEntity<?> getTransactions(
+    public ResponseEntity<TransactionResponse> getTransactions(
             @RequestParam String sigunguCode,
             @RequestParam String bname,
             @RequestParam String housingType,
@@ -30,11 +41,7 @@ public class DiagnosisController {
     ) {
         MolitApiService.TransactionResult result = molitApiService.fetchRecentAvg(sigunguCode, bname, housingType, area);
         if (result == null) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(Map.of(
-                "avgPrice", (long) result.avgPrice(),
-                "count",    result.count(),
-                "source",   "api"
-        ));
+        return ResponseEntity.ok(new TransactionResponse((long) result.avgPrice(), result.count(), "api"));
     }
 
     @PostMapping("/diagnosis")
@@ -48,7 +55,7 @@ public class DiagnosisController {
     }
 
     @GetMapping("/diagnosis/latest")
-    public ResponseEntity<?> getLatest(
+    public ResponseEntity<DiagnosisResponse> getLatest(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam String type
     ) {
@@ -56,11 +63,11 @@ public class DiagnosisController {
         Optional<Diagnosis> latest = diagnosisService.getLatest(userPk, type);
         if (latest.isEmpty()) return ResponseEntity.noContent().build();
         Diagnosis d = latest.get();
-        return ResponseEntity.ok(Map.of(
-                "type",       d.getType(),
-                "inputJson",  d.getInputJson(),
-                "resultJson", d.getResultJson(),
-                "createdAt",  d.getCreatedAt().toString()
+        return ResponseEntity.ok(new DiagnosisResponse(
+                d.getType(),
+                d.getInputJson(),
+                d.getResultJson(),
+                d.getCreatedAt().toString()
         ));
     }
 
