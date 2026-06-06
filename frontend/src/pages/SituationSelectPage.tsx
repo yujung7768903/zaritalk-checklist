@@ -9,7 +9,7 @@ const situations = [
     type: 'new-home',
     icon: '🏠',
     title: '첫 집 구하기',
-    description: '처음으로 집을 구하는 경우',
+    desc: '처음 독립하거나 새로 집을 구하는 경우',
     color: '#2C7FFF',
     bg: '#EBF2FF',
   },
@@ -17,17 +17,17 @@ const situations = [
     type: 'move',
     icon: '📦',
     title: '이사하기',
-    // subtitle: '',
-    description: '기존 계약 종료 후 다른 집으로 이사하는 경우',
+    desc: '기존 계약 종료 후 다른 집으로 이사하는 경우',
     color: '#34C759',
     bg: '#E8F8ED',
   },
 ]
 
-const tools = [
-  { icon: '🔍', label: '안전진단', path: '/diagnosis', desc: '전세·매매·월세 위험 분석' },
-  { icon: '📖', label: '용어사전', path: '/glossary', desc: '부동산 용어 한눈에' },
-]
+const ChevronRight = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0 text-[#C5C8CE]">
+    <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
 
 export default function SituationSelectPage() {
   const navigate = useNavigate()
@@ -50,17 +50,18 @@ export default function SituationSelectPage() {
 
   return (
     <div className="w-full min-h-screen bg-[#F1F3F6]">
-      <div className="w-full max-w-[500px] mx-auto bg-white min-h-screen">
-        {/* Header */}
-        <div className="bg-white px-5 pt-12 pb-6">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-xs font-semibold text-[#2C7FFF]">둥지트기 도우미</p>
+      <div className="w-full max-w-[640px] mx-auto min-h-screen">
+
+        {/* 헤더 */}
+        <div className="px-5 pt-12 pb-4">
+          <div className="flex items-center justify-between">
+            <span className="text-[13px] font-semibold text-[#2C7FFF] tracking-tight">둥지트기 도우미</span>
             {user ? (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-[#555]">{user.nickname}님</span>
+                <span className="text-[13px] text-[#555]">{user.nickname}님</span>
                 <button
                   onClick={logout}
-                  className="text-xs text-[#999] border border-[#E5E8EB] rounded-lg px-2.5 py-1.5 cursor-pointer hover:border-[#999] transition-colors"
+                  className="text-[12px] text-[#999] border border-[#E5E8EB] rounded-lg px-2.5 py-1.5 cursor-pointer hover:border-[#999] transition-colors"
                 >
                   로그아웃
                 </button>
@@ -68,7 +69,7 @@ export default function SituationSelectPage() {
             ) : (
               <button
                 onClick={handleKakaoLogin}
-                className="flex items-center gap-1.5 bg-[#FEE500] text-[#191919] text-xs font-semibold rounded-lg px-3 py-1.5 cursor-pointer"
+                className="flex items-center gap-1.5 bg-[#FEE500] text-[#191919] text-[12px] font-bold rounded-lg px-3 py-1.5 cursor-pointer"
               >
                 <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
                   <path fillRule="evenodd" clipRule="evenodd" d="M9 1C4.58 1 1 3.91 1 7.5c0 2.28 1.44 4.28 3.63 5.44l-.93 3.42a.25.25 0 0 0 .37.28L8.1 14.1c.29.03.59.04.9.04 4.42 0 8-2.91 8-6.5S13.42 1 9 1z" fill="#191919"/>
@@ -77,75 +78,67 @@ export default function SituationSelectPage() {
               </button>
             )}
           </div>
-          <h1 className="text-2xl font-bold text-[#222] leading-snug">
-            어떤 상황인가요?
-          </h1>
-          <p className="mt-2 text-sm text-[#999]">
-            상황을 선택하면 맞춤 체크리스트를 보여드릴게요
-          </p>
         </div>
 
-        {/* 안전진단 배너 */}
-        <div className="px-4 pt-4">
-          <div className="bg-[#EBF2FF] rounded-2xl p-5">
-            <p className="text-xs font-semibold text-[#2C7FFF] mb-1">안전진단</p>
-            <p className="text-base font-bold text-[#222] leading-snug mb-3">
+        <div className="px-5 pt-4 pb-10 space-y-5">
+
+          {/* 안전진단 배너 */}
+          <div className="bg-white rounded-2xl px-6 pt-6 pb-4 shadow-[0_1px_6px_rgba(0,0,0,0.06)]">
+            <p className="text-[17px] font-bold text-[#111] leading-[135%] mb-4">
               안전하게 집을 구할 수 있도록<br />도와드릴게요
             </p>
             <button
               onClick={() => navigate('/diagnosis')}
-              className="w-full bg-[#2C7FFF] text-white text-sm font-bold rounded-lg py-3 cursor-pointer"
+              className="w-full h-12 bg-[#2C7FFF] text-white text-[14px] font-bold rounded-lg cursor-pointer hover:bg-[#1a6fe8] transition-colors"
             >
               안전 진단 바로가기
             </button>
           </div>
-        </div>
 
-        {/* Situation cards */}
-        <div className="px-4 pt-4 space-y-3">
-          {situations.map(s => (
-            <button
-              key={s.type}
-              onClick={() => navigate(`/checklist/${s.type}`)}
-              className="w-full bg-white rounded-lg flex items-center justify-between gap-2 cursor-pointer border border-[#E5E8EB] hover:border-[#2C7FFF] transition-colors"
-              style={{ padding: '16px 16px 16px 20px' }}
-            >
-              <div className="flex items-center gap-4 min-w-0">
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0"
-                  style={{ background: s.bg }}
+          {/* 체크리스트 */}
+          <div>
+            <p className="text-[13px] font-semibold text-[#888] mb-2.5 px-0.5">체크리스트</p>
+            <div className="flex flex-col gap-2.5">
+              {situations.map(s => (
+                <button
+                  key={s.type}
+                  onClick={() => navigate(`/checklist/${s.type}`)}
+                  className="w-full bg-white rounded-2xl p-3 flex items-center gap-3 cursor-pointer text-left shadow-[0_1px_6px_rgba(0,0,0,0.06)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.1)] transition-shadow"
                 >
-                  {s.icon}
-                </div>
-                <div className="text-left min-w-0">
-                  <span className="text-sm font-bold text-[#333]">{s.title}</span>
-                  <p className="mt-0.5 text-xs text-[#999]">{s.description}</p>
-                </div>
-              </div>
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" className="text-[#CDD1D5] shrink-0">
-                <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-          ))}
-        </div>
-
-        {/* Tools section */}
-        <div className="px-4 pt-6 pb-8">
-          <p className="text-xs font-semibold text-[#999] uppercase tracking-wide mb-3 px-1">유용한 도구</p>
-          <div className="grid grid-cols-2 gap-3">
-            {tools.map(t => (
-              <button
-                key={t.path}
-                onClick={() => navigate(t.path)}
-                className="bg-white rounded-lg text-left cursor-pointer border border-[#E5E8EB] hover:border-[#2C7FFF] transition-colors"
-                style={{ padding: '16px 16px 16px 20px' }}
-              >
-                <span className="text-2xl">{t.icon}</span>
-                <p className="mt-2 text-sm font-bold text-[#333]">{t.label}</p>
-                <p className="mt-0.5 text-xs text-[#999]">{t.desc}</p>
-              </button>
-            ))}
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center text-[22px] shrink-0"
+                    style={{ background: s.bg }}
+                  >
+                    {s.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-bold text-[#111] leading-tight">{s.title}</p>
+                    <p className="text-[13px] text-[#888] mt-0.5 leading-snug">{s.desc}</p>
+                  </div>
+                  <ChevronRight />
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* 용어사전 */}
+          <div>
+            <p className="text-[13px] font-semibold text-[#888] mb-2.5 px-0.5">도구</p>
+            <button
+              onClick={() => navigate('/glossary')}
+              className="w-full bg-white rounded-2xl p-3 flex items-center gap-3 cursor-pointer text-left shadow-[0_1px_6px_rgba(0,0,0,0.06)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.1)] transition-shadow"
+            >
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center text-[22px] shrink-0 bg-[#FFF4E5]">
+                📖
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[15px] font-bold text-[#111] leading-tight">용어사전</p>
+                <p className="text-[13px] text-[#888] mt-0.5">부동산 계약 용어를 쉽게 확인해요</p>
+              </div>
+              <ChevronRight />
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
