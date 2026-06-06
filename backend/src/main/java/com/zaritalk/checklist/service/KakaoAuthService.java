@@ -6,25 +6,88 @@ import com.zaritalk.checklist.domain.User;
 import com.zaritalk.checklist.dto.LoginResponse;
 import com.zaritalk.checklist.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class KakaoAuthService {
 
+    private static final String KAKAO_TOKEN_URL = "https://kauth.kakao.com/oauth/token";
     private static final String KAKAO_USER_ME_URL = "https://kapi.kakao.com/v2/user/me";
 
+    @Value("${kakao.rest-api-key}")
+    private String restApiKey;
+
+    @Value("${kakao.client-secret}")
+    private String clientSecret;
+
+    @Value("${kakao.redirect-uri:http://localhost:5174}")
+    private String redirectUri;
+
     private final UserRepository userRepository;
+    private final JwtService jwtService;
     private final RestClient restClient = RestClient.create();
 
-    public LoginResponse login(String accessToken) {
+    public String getAuthorizationUrl() {
+        return UriComponentsBuilder
+                .fromHttpUrl("https://kauth.kakao.com/oauth/authorize")
+                .queryParam("client_id", restApiKey)
+                .queryParam("redirect_uri", redirectUri)
+                .queryParam("response_type", "code")
+                .build()
+                .toUriString();
+    }
+
+    public LoginResponse loginWithCode(String code) {
+        String accessToken = exchangeCodeForToken(code);
+        return loginWithToken(accessToken);
+    }
+
+    private String exchangeCodeForToken(String code) {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("grant_type", "authorization_code");
+        formData.add("client_id", restApiKey);
+        formData.add("client_secret", clientSecret);
+        formData.add("redirect_uri", redirectUri);
+        formData.add("code", code);
+
+        TokenResponse tokenResponse = restClient.post()
+                .uri(KAKAO_TOKEN_URL)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(formData)
+                .retrieve()
+                .body(TokenResponse.class);
+
+        if (tokenResponse == null || tokenResponse.accessToken() == null) {
+            throw new IllegalStateException("카카오 토큰을 받을 수 없습니다.");
+        }
+        return tokenResponse.accessToken();
+    }
+
+    private LoginResponse loginWithToken(String accessToken) {
         KakaoUserInfo kakaoUser = fetchKakaoUserInfo(accessToken);
-        User user = userRepository.findByKakaoId(kakaoUser.id())
-                .orElseGet(() -> userRepository.save(User.create(kakaoUser.id(), kakaoUser.nickname())));
-        return new LoginResponse(user.getPk(), user.getNickname());
+        User user = findOrCreateUser(kakaoUser);
+        String token = jwtService.generateToken(user.getPk());
+        return new LoginResponse(user.getPk(), user.getNickname(), token);
+    }
+
+    private User findOrCreateUser(KakaoUserInfo kakaoUser) {
+        try {
+            return userRepository.findByKakaoId(kakaoUser.id())
+                    .orElseGet(() -> userRepository.save(User.create(kakaoUser.id(), kakaoUser.nickname())));
+        } catch (DataIntegrityViolationException e) {
+            return userRepository.findByKakaoId(kakaoUser.id())
+                    .orElseThrow(() -> new IllegalStateException("사용자 생성에 실패했습니다."));
+        }
     }
 
     private KakaoUserInfo fetchKakaoUserInfo(String accessToken) {
@@ -47,6 +110,9 @@ public class KakaoAuthService {
     }
 
     private record KakaoUserInfo(Long id, String nickname) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record TokenResponse(@JsonProperty("access_token") String accessToken) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record KakaoUserInfoResponse(

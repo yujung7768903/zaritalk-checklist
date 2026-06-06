@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "checklist_user")
+@Table(name = "`user`")
 public class User {
 
     @Id

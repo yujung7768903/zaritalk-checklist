@@ -3,6 +3,7 @@ package com.zaritalk.checklist.controller;
 import com.zaritalk.checklist.domain.ChecklistType;
 import com.zaritalk.checklist.dto.CompletedItemsResponse;
 import com.zaritalk.checklist.service.ChecklistService;
+import com.zaritalk.checklist.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,12 +22,14 @@ import java.util.List;
 public class ChecklistController {
 
     private final ChecklistService checklistService;
+    private final JwtService jwtService;
 
     @GetMapping("/{type}/progress")
     public ResponseEntity<CompletedItemsResponse> getProgress(
             @PathVariable String type,
-            @RequestHeader("X-User-Pk") Long userPk
+            @RequestHeader("Authorization") String authHeader
     ) {
+        Long userPk = jwtService.extractUserPk(bearerToken(authHeader));
         ChecklistType checklistType = ChecklistType.fromSlug(type);
         List<String> completedItemIds = checklistService.getCompletedItemIds(userPk, checklistType);
         return ResponseEntity.ok(new CompletedItemsResponse(completedItemIds));
@@ -36,8 +39,9 @@ public class ChecklistController {
     public ResponseEntity<CompletedItemsResponse> toggleItem(
             @PathVariable String type,
             @PathVariable String itemId,
-            @RequestHeader("X-User-Pk") Long userPk
+            @RequestHeader("Authorization") String authHeader
     ) {
+        Long userPk = jwtService.extractUserPk(bearerToken(authHeader));
         ChecklistType checklistType = ChecklistType.fromSlug(type);
         List<String> completedItemIds = checklistService.toggleItem(userPk, checklistType, itemId);
         return ResponseEntity.ok(new CompletedItemsResponse(completedItemIds));
@@ -46,10 +50,18 @@ public class ChecklistController {
     @DeleteMapping("/{type}/progress")
     public ResponseEntity<Void> resetProgress(
             @PathVariable String type,
-            @RequestHeader("X-User-Pk") Long userPk
+            @RequestHeader("Authorization") String authHeader
     ) {
+        Long userPk = jwtService.extractUserPk(bearerToken(authHeader));
         ChecklistType checklistType = ChecklistType.fromSlug(type);
         checklistService.resetProgress(userPk, checklistType);
         return ResponseEntity.noContent().build();
+    }
+
+    private String bearerToken(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Authorization 헤더가 없거나 형식이 잘못되었습니다.");
+        }
+        return authHeader.substring(7);
     }
 }

@@ -17,7 +17,12 @@ spring:
         format_sql: true
 
 kakao:
-  rest-api-key: ${KAKAO_REST_API_KEY:placeholder}
+  rest-api-key: ${KAKAO_REST_API_KEY}
+  client-secret: ${KAKAO_CLIENT_SECRET}
+  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:5174}
+
+jwt:
+  secret: ${JWT_SECRET}
 
 server:
   port: 8080
