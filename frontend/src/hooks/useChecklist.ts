@@ -15,15 +15,13 @@ export function useChecklist(type: ChecklistType) {
     return stored ? new Set(JSON.parse(stored)) : new Set()
   })
 
-  // 로그인 상태이면 서버에서 진행 상태를 불러온다
   useEffect(() => {
     if (!user) return
-    checklistApi.getProgress(type, user.userPk).then(ids => {
+    checklistApi.getProgress(type, user.token).then(ids => {
       setCompletedIds(new Set(ids))
     })
   }, [type, user])
 
-  // 비로그인 상태이면 localStorage에 동기화한다
   useEffect(() => {
     if (user) return
     localStorage.setItem(storageKey(type), JSON.stringify([...completedIds]))
@@ -31,7 +29,7 @@ export function useChecklist(type: ChecklistType) {
 
   const toggle = (itemId: string) => {
     if (user) {
-      checklistApi.toggleItem(type, itemId, user.userPk).then(ids => {
+      checklistApi.toggleItem(type, itemId, user.token).then(ids => {
         setCompletedIds(new Set(ids))
       })
     } else {
@@ -45,7 +43,7 @@ export function useChecklist(type: ChecklistType) {
 
   const reset = () => {
     if (user) {
-      checklistApi.resetProgress(type, user.userPk).then(() => {
+      checklistApi.resetProgress(type, user.token).then(() => {
         setCompletedIds(new Set())
       })
     } else {

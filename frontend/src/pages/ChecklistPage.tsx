@@ -1,31 +1,56 @@
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import type { ChecklistType, ChecklistItem } from '../types/checklist'
+import type { ChecklistType, ChecklistSection, SituationConfig, SituationCondition } from '../types/checklist'
 import { newHomeSections } from '../constants/checklists/newHome'
-import { jeonsaMoveSections } from '../constants/checklists/jeonsaMove'
-import { monthlyMoveSections } from '../constants/checklists/monthlyMove'
+import { moveSections } from '../constants/checklists/move'
 import { useChecklist } from '../hooks/useChecklist'
+import { useSituationConfig } from '../hooks/useSituationConfig'
 import ProgressBar from '../components/ProgressBar'
-import ChecklistSection from '../components/ChecklistSection'
+import ChecklistSectionComp from '../components/ChecklistSection'
 import ChecklistItemDetail from '../components/ChecklistItemDetail'
+import SituationSetup from '../components/SituationSetup'
 
 const SECTION_MAP = {
   'new-home': newHomeSections,
-  'jeonse-move': jeonsaMoveSections,
-  'monthly-move': monthlyMoveSections,
+  'move': moveSections,
 }
 
 const TITLE_MAP = {
   'new-home': '새 집 구하기',
-  'jeonse-move': '전세 이사',
-  'monthly-move': '월세 이사',
+  'move': '이사',
+}
+
+const SITUATION_TYPES: ChecklistType[] = ['move', 'new-home']
+
+function matchesSituation(cond: SituationCondition, config: SituationConfig): boolean {
+  if (cond.currentHousing && config.currentHousing && !cond.currentHousing.includes(config.currentHousing)) return false
+  if (cond.nextHousing && !cond.nextHousing.includes(config.nextHousing)) return false
+  if (cond.exitType && config.exitType && !cond.exitType.includes(config.exitType)) return false
+  return true
+}
+
+function applyConditions(sections: ChecklistSection[], config: SituationConfig): ChecklistSection[] {
+  return sections
+    .filter(s => !s.showWhen || matchesSituation(s.showWhen, config))
+    .map(s => ({
+      ...s,
+      items: s.items.filter(i => !i.showWhen || matchesSituation(i.showWhen, config)),
+    }))
 }
 
 export default function ChecklistPage() {
   const { type } = useParams<{ type: string }>()
   const navigate = useNavigate()
   const checklistType = (type as ChecklistType) ?? 'new-home'
-  const sections = SECTION_MAP[checklistType] ?? []
+  const allSections = SECTION_MAP[checklistType] ?? []
+  const hasSituationConfig = SITUATION_TYPES.includes(checklistType)
+
+  const { config, saveConfig } = useSituationConfig(checklistType)
+
+  const sections = useMemo(
+    () => (hasSituationConfig && config ? applyConditions(allSections, config) : allSections),
+    [allSections, config, hasSituationConfig]
+  )
 
   const { completedIds, toggle, reset } = useChecklist(checklistType)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
@@ -65,9 +90,20 @@ export default function ChecklistPage() {
               초기화
             </button>
           </div>
-
           <ProgressBar completed={completedCount} total={totalCount} />
         </div>
+
+        {/* Situation setup */}
+        {hasSituationConfig && (
+          <SituationSetup checklistType={checklistType} config={config} onSave={saveConfig} />
+        )}
+
+        {/* Not configured yet — prompt */}
+        {hasSituationConfig && !config && (
+          <div className="mx-4 mt-2 mb-2 bg-[#F7F8FA] rounded-xl px-4 py-3 text-center">
+            <p className="text-xs text-[#999]">상황을 설정하면 맞춤 체크리스트를 볼 수 있습니다</p>
+          </div>
+        )}
 
         {/* All done banner */}
         {allDone && (
@@ -82,8 +118,8 @@ export default function ChecklistPage() {
 
         {/* Sections */}
         <div className="pt-3 pb-8">
-          {sections.map(section => (
-            <ChecklistSection
+          {(!hasSituationConfig || config) && sections.map(section => (
+            <ChecklistSectionComp
               key={section.id}
               section={section}
               completedIds={completedIds}

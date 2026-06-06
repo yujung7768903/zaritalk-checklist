@@ -24,12 +24,25 @@ export const jeonsaMoveSections: ChecklistSection[] = [
         checks: ['계약 종료 2~6개월 전 통보', '통보 내역 보관', '임대인 수신 확인'],
         links: [],
         important: true,
+        showWhen: { exitType: ['expired'] },
+      },
+      {
+        id: 'early-exit-agreement',
+        title: '중도퇴실 합의',
+        why: '계약 기간 중 퇴실 시 임대인 동의 없이는 위약금이 발생하거나 보증금 반환이 어려울 수 있습니다.',
+        how: ['임대인에게 퇴실 의향 사전 통보', '후임 세입자 구하기 협의', '위약금 조건 확인'],
+        cost: '상황에 따라 위약금 발생 가능',
+        checks: ['임대인 동의 확인', '위약금 조건 확인', '후임 세입자 구하기 여부', '퇴실 예정일 합의'],
+        links: [],
+        important: true,
+        showWhen: { exitType: ['early'] },
       },
     ],
   },
   {
     id: 'existing-loan',
     title: '기존 전세대출 확인',
+    showWhen: { currentHousing: ['jeonse'] },
     items: [
       {
         id: 'loan-repay-method',
@@ -54,6 +67,7 @@ export const jeonsaMoveSections: ChecklistSection[] = [
   {
     id: 'existing-insurance',
     title: '기존 보증보험 확인',
+    showWhen: { currentHousing: ['jeonse'] },
     items: [
       {
         id: 'insurance-cancel',
@@ -161,6 +175,7 @@ export const jeonsaMoveSections: ChecklistSection[] = [
         cost: '없음',
         checks: ['상환 완료 여부', '잔액 확인'],
         links: [],
+        showWhen: { currentHousing: ['jeonse'] },
       },
       {
         id: 'new-registry-recheck',
