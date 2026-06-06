@@ -26,7 +26,7 @@ export default function ChecklistItemDetail({ item, onClose }: Props) {
 
   const title = (
     <span>
-      {item.important && <span className="text-[#FF3B30] mr-1">⭐</span>}
+      {item.important && <span className="text-danger mr-1">⭐</span>}
       {item.title}
     </span>
   )
@@ -37,16 +37,16 @@ export default function ChecklistItemDetail({ item, onClose }: Props) {
 
         <div className="space-y-4">
           <section>
-            <p className="text-xs font-semibold text-[#999] uppercase tracking-wide mb-1.5">필요한 이유</p>
-            <p className="text-sm text-[#444] leading-relaxed">{item.why}</p>
+            <p className="text-xs font-semibold text-tertiary uppercase tracking-wide mb-1.5">필요한 이유</p>
+            <p className="text-sm text-text-medium leading-relaxed">{item.why}</p>
           </section>
 
           <section>
-            <p className="text-xs font-semibold text-[#999] uppercase tracking-wide mb-1.5">확인방법</p>
+            <p className="text-xs font-semibold text-tertiary uppercase tracking-wide mb-1.5">확인방법</p>
             <ul className="space-y-1">
               {item.how.map((h, i) => (
-                <li key={i} className="text-sm text-[#444] flex items-start gap-2">
-                  <span className="text-[#2C7FFF] mt-0.5 shrink-0">•</span>
+                <li key={i} className="text-sm text-text-medium flex items-start gap-2">
+                  <span className="text-primary mt-0.5 shrink-0">•</span>
                   {h}
                 </li>
               ))}
@@ -54,12 +54,12 @@ export default function ChecklistItemDetail({ item, onClose }: Props) {
           </section>
 
           <section>
-            <p className="text-xs font-semibold text-[#999] uppercase tracking-wide mb-1.5">비용</p>
-            <p className="text-sm text-[#444]">{item.cost}</p>
+            <p className="text-xs font-semibold text-tertiary uppercase tracking-wide mb-1.5">비용</p>
+            <p className="text-sm text-text-medium">{item.cost}</p>
           </section>
 
           <section>
-            <p className="text-xs font-semibold text-[#999] uppercase tracking-wide mb-2">확인할 것</p>
+            <p className="text-xs font-semibold text-tertiary uppercase tracking-wide mb-2">확인할 것</p>
             <ul className="space-y-2">
               {item.checks.map((c, i) => (
                 <li
@@ -69,8 +69,8 @@ export default function ChecklistItemDetail({ item, onClose }: Props) {
                 >
                   <span className={`w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-colors ${
                     checkedIndexes.has(i)
-                      ? 'bg-[#2C7FFF] border-[#2C7FFF]'
-                      : 'bg-white border-[#CDD1D5]'
+                      ? 'bg-primary border-primary'
+                      : 'bg-white border-border-strong'
                   }`}>
                     {checkedIndexes.has(i) && (
                       <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
@@ -78,7 +78,7 @@ export default function ChecklistItemDetail({ item, onClose }: Props) {
                       </svg>
                     )}
                   </span>
-                  <span className={checkedIndexes.has(i) ? 'text-[#999] line-through' : 'text-[#333]'}>
+                  <span className={checkedIndexes.has(i) ? 'text-tertiary line-through' : 'text-text-dark'}>
                     {c}
                   </span>
                 </li>
@@ -87,15 +87,15 @@ export default function ChecklistItemDetail({ item, onClose }: Props) {
           </section>
 
           {item.note && (
-            <section className="bg-[#FFF8E7] rounded-xl p-3">
-              <p className="text-xs font-semibold text-[#FF9500] mb-1">참고</p>
-              <p className="text-xs text-[#664400] leading-relaxed">{item.note}</p>
+            <section className="bg-note-bg rounded-xl p-3">
+              <p className="text-xs font-semibold text-warning mb-1">참고</p>
+              <p className="text-xs text-note-text leading-relaxed">{item.note}</p>
             </section>
           )}
 
           {item.links.length > 0 && (
             <section>
-              <p className="text-xs font-semibold text-[#999] uppercase tracking-wide mb-2">바로가기</p>
+              <p className="text-xs font-semibold text-tertiary uppercase tracking-wide mb-2">바로가기</p>
               <div className="flex flex-wrap gap-2">
                 {item.links.map((link, i) => (
                   <ExternalLinkButton key={i} link={link} />

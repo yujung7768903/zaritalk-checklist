@@ -28,24 +28,24 @@ export default function GlossaryPage() {
   }, [filtered])
 
   return (
-    <div className="w-full min-h-screen bg-[#F1F3F6]">
+    <div className="w-full min-h-screen bg-bg">
       <div className="w-full max-w-[640px] mx-auto bg-white min-h-screen">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-white">
           <div className="flex items-center gap-3 px-4 pt-12 pb-3">
-            <button onClick={() => navigate('/')} className="p-2 -ml-2 text-[#666]">
+            <button onClick={() => navigate('/')} className="p-2 -ml-2 text-sub">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M15 19L8 12L15 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <h1 className="text-base font-bold text-[#222] flex-1">부동산 용어사전</h1>
-            <span className="text-xs text-[#999]">{glossaryTerms.length}개</span>
+            <h1 className="text-base font-bold text-text flex-1">부동산 용어사전</h1>
+            <span className="text-xs text-tertiary">{glossaryTerms.length}개</span>
           </div>
 
           {/* Search */}
           <div className="px-4 pb-3">
-            <div className="flex items-center gap-2 bg-[#F1F3F6] rounded-xl px-3 py-2.5">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-[#999] shrink-0">
+            <div className="flex items-center gap-2 bg-bg rounded-xl px-3 py-2.5">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-tertiary shrink-0">
                 <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/>
                 <path d="M11 11L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
@@ -54,10 +54,10 @@ export default function GlossaryPage() {
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="용어 검색"
-                className="flex-1 bg-transparent text-sm text-[#222] outline-none placeholder:text-[#CCC]"
+                className="flex-1 bg-transparent text-sm text-text outline-none placeholder:text-faint"
               />
               {query && (
-                <button onClick={() => setQuery('')} className="text-[#CCC]">
+                <button onClick={() => setQuery('')} className="text-faint">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
@@ -71,7 +71,7 @@ export default function GlossaryPage() {
             <button
               onClick={() => setActiveCategory(null)}
               className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                !activeCategory ? 'bg-[#2C7FFF] text-white' : 'bg-[#F1F3F6] text-[#666]'
+                !activeCategory ? 'bg-primary text-white' : 'bg-bg text-sub'
               }`}
             >
               전체
@@ -81,7 +81,7 @@ export default function GlossaryPage() {
                 key={c}
                 onClick={() => setActiveCategory(prev => prev === c ? null : c)}
                 className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-                  activeCategory === c ? 'bg-[#2C7FFF] text-white' : 'bg-[#F1F3F6] text-[#666]'
+                  activeCategory === c ? 'bg-primary text-white' : 'bg-bg text-sub'
                 }`}
               >
                 {c}
@@ -95,13 +95,13 @@ export default function GlossaryPage() {
           {Object.keys(grouped).length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center px-8">
               <span className="text-4xl mb-3">🔍</span>
-              <p className="text-sm text-[#999]">"{query}"에 해당하는 용어가 없습니다</p>
+              <p className="text-sm text-tertiary">"{query}"에 해당하는 용어가 없습니다</p>
             </div>
           ) : (
             Object.entries(grouped).map(([category, terms]) => (
               <div key={category} className="mb-2">
                 <div className="px-4 py-2">
-                  <span className="text-xs font-semibold text-[#999] uppercase tracking-wide">{category}</span>
+                  <span className="text-xs font-semibold text-tertiary uppercase tracking-wide">{category}</span>
                 </div>
                 <div className="bg-white">
                   {terms.map((term, i) => (
@@ -109,14 +109,14 @@ export default function GlossaryPage() {
                       key={term.id}
                       onClick={() => setSelectedTerm(term)}
                       className={`w-full flex items-center justify-between px-4 py-3.5 text-left ${
-                        i < terms.length - 1 ? 'border-b border-[#F1F3F6]' : ''
+                        i < terms.length - 1 ? 'border-b border-bg' : ''
                       }`}
                     >
                       <div>
-                        <span className="text-sm font-semibold text-[#222]">{term.term}</span>
-                        <span className="text-xs text-[#999] ml-2">{term.meaning}</span>
+                        <span className="text-sm font-semibold text-text">{term.term}</span>
+                        <span className="text-xs text-tertiary ml-2">{term.meaning}</span>
                       </div>
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-[#CDD1D5] shrink-0">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-border-strong shrink-0">
                         <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>

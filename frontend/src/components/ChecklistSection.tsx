@@ -19,18 +19,18 @@ export default function ChecklistSection({ section, completedIds, onToggle, onDe
     <div className="mb-2">
       <button
         onClick={() => setCollapsed(p => !p)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-white border-b border-[#F1F3F6]"
+        className="w-full flex items-center justify-between px-4 py-3 bg-white border-b border-bg"
       >
-        <span className={`text-sm font-semibold ${allDone ? 'text-[#AAA]' : 'text-[#222]'}`}>
+        <span className={`text-sm font-semibold ${allDone ? 'text-disabled' : 'text-text'}`}>
           {section.title}
         </span>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-[#999]">{completed}/{total}</span>
+          <span className="text-xs text-tertiary">{completed}/{total}</span>
           <svg
             width="16" height="16" viewBox="0 0 16 16" fill="none"
             className={`transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`}
           >
-            <path d="M4 6L8 10L12 6" stroke="#CDD1D5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M4 6L8 10L12 6" stroke="var(--color-border-strong)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
       </button>

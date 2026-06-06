@@ -13,15 +13,15 @@ export default function GlossaryTermSheet({ term, onClose }: Props) {
     <BottomSheet open={!!term} onClose={onClose} title={term.term}>
       <div className="px-5 pb-8 pt-4">
         <div className="mb-5">
-          <span className="text-xs font-semibold text-[#2C7FFF] bg-[#EBF2FF] px-2 py-1 rounded-lg">
+          <span className="text-xs font-semibold text-primary bg-primary-light px-2 py-1 rounded-lg">
             {term.category}
           </span>
         </div>
-        <p className="text-sm text-[#444] leading-relaxed mb-4">{term.meaning}</p>
+        <p className="text-sm text-text-medium leading-relaxed mb-4">{term.meaning}</p>
         {term.detail && (
-          <div className="bg-[#F8F9FA] rounded-xl p-4">
-            <p className="text-xs font-semibold text-[#999] mb-2">더 알아보기</p>
-            <p className="text-sm text-[#555] leading-relaxed">{term.detail}</p>
+          <div className="bg-subtle rounded-xl p-4">
+            <p className="text-xs font-semibold text-tertiary mb-2">더 알아보기</p>
+            <p className="text-sm text-text-muted leading-relaxed">{term.detail}</p>
           </div>
         )}
       </div>

@@ -50,12 +50,12 @@ export default function AddressSearch({ value, onChange }: Props) {
       <button
         type="button"
         onClick={openSearch}
-        className="w-full h-9 border border-[#E5E8EB] rounded-lg px-3 text-left text-sm focus:border-[#2C7FFF] transition-colors bg-white"
+        className="w-full h-9 border border-border rounded-lg px-3 text-left text-sm focus:border-primary transition-colors bg-white"
       >
         {value ? (
-          <span className="text-[#222]">{value.roadAddress}</span>
+          <span className="text-text">{value.roadAddress}</span>
         ) : (
-          <span className="text-[#BBBBBB]">주소 검색</span>
+          <span className="text-placeholder">주소 검색</span>
         )}
       </button>
     </div>

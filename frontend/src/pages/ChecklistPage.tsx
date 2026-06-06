@@ -70,23 +70,23 @@ export default function ChecklistPage() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#F1F3F6]">
+    <div className="w-full min-h-screen bg-bg">
       <div className="w-full max-w-[640px] mx-auto bg-white min-h-screen">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-white">
           <div className="flex items-center justify-between px-4 pt-12 pb-3">
             <button
               onClick={() => navigate('/')}
-              className="p-2 -ml-2 text-[#666]"
+              className="p-2 -ml-2 text-sub"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M15 19L8 12L15 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <h1 className="text-base font-bold text-[#222]">
+            <h1 className="text-base font-bold text-text">
               {TITLE_MAP[checklistType]}
             </h1>
-            <button onClick={handleReset} className="text-xs text-[#999] p-2 -mr-2">
+            <button onClick={handleReset} className="text-xs text-tertiary p-2 -mr-2">
               초기화
             </button>
           </div>
@@ -100,18 +100,18 @@ export default function ChecklistPage() {
 
         {/* Not configured yet — prompt */}
         {hasSituationConfig && !config && (
-          <div className="mx-4 mt-2 mb-2 bg-[#F7F8FA] rounded-xl px-4 py-3 text-center">
-            <p className="text-xs text-[#999]">상황을 설정하면 맞춤 체크리스트를 볼 수 있습니다</p>
+          <div className="mx-4 mt-2 mb-2 bg-subtle rounded-xl px-4 py-3 text-center">
+            <p className="text-xs text-tertiary">상황을 설정하면 맞춤 체크리스트를 볼 수 있습니다</p>
           </div>
         )}
 
         {/* All done banner */}
         {allDone && (
-          <div className="mx-4 mt-3 bg-[#EBF2FF] rounded-2xl px-4 py-3 flex items-center gap-3">
+          <div className="mx-4 mt-3 bg-primary-light rounded-2xl px-4 py-3 flex items-center gap-3">
             <span className="text-2xl">🎉</span>
             <div>
-              <p className="text-sm font-bold text-[#2C7FFF]">모든 항목 완료!</p>
-              <p className="text-xs text-[#5A9BFF]">꼼꼼히 확인하셨네요. 안전한 계약 되세요!</p>
+              <p className="text-sm font-bold text-primary">모든 항목 완료!</p>
+              <p className="text-xs text-primary-medium">꼼꼼히 확인하셨네요. 안전한 계약 되세요!</p>
             </div>
           </div>
         )}

@@ -1,16 +1,73 @@
 @import "tailwindcss";
 
 @theme {
+  /* Primary */
   --color-primary: #2C7FFF;
+  --color-primary-hover: #1A6FE8;
+  --color-primary-medium: #5A9BFF;
   --color-primary-light: #EBF2FF;
+
+  /* Base */
   --color-bg: #F1F3F6;
+  --color-bg-subtle: #F7F8FA;
+  --color-bg-off-white: #FAFBFC;
+
+  /* Text */
   --color-text: #222222;
+  --color-text-emphasis: #111111;
+  --color-text-dark: #333333;
+  --color-text-medium: #444444;
+  --color-text-muted: #555555;
   --color-text-sub: #666666;
+  --color-text-hint: #888888;
   --color-text-tertiary: #999999;
+  --color-text-disabled: #AAAAAA;
+  --color-text-placeholder: #BBBBBB;
+  --color-text-faint: #CCCCCC;
+  --color-icon-muted: #C5C8CE;
+
+  /* Border */
   --color-border: #E5E8EB;
-  --color-warning: #FF9500;
-  --color-danger: #FF3B30;
+  --color-border-strong: #CDD1D5;
+
+  /* Success */
   --color-success: #34C759;
+  --color-success-bar: #97C459;
+  --color-success-bg: #EAF3DE;
+  --color-success-bg-light: #E8F8ED;
+  --color-success-border: #C0DD97;
+  --color-success-text: #3B6D11;
+  --color-success-text-dark: #27500A;
+
+  /* Warning */
+  --color-warning: #FF9500;
+  --color-warning-bg: #FAEEDA;
+  --color-warning-bg-light: #FFF4E5;
+  --color-warning-border: #FAC775;
+  --color-warning-text: #854F0B;
+  --color-warning-text-dark: #633806;
+
+  /* Danger */
+  --color-danger: #FF3B30;
+  --color-danger-bar: #F87171;
+  --color-danger-bg: #FCEBEB;
+  --color-danger-bg-light: #FFF0EE;
+  --color-danger-border: #F7C1C1;
+  --color-danger-text: #A32D2D;
+
+  /* Info */
+  --color-info-bg: #E6F1FB;
+  --color-info-text: #185FA5;
+  --color-info-text-dark: #0C447C;
+
+  /* Note */
+  --color-note-bg: #FFF8E7;
+  --color-note-text: #664400;
+
+  /* Kakao */
+  --color-kakao: #FEE500;
+  --color-kakao-text: #191919;
+
   --font-family-sans: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -21,8 +78,8 @@
 
 body {
   font-family: var(--font-family-sans);
-  background-color: #F1F3F6;
-  color: #222222;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;

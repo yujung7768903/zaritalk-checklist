@@ -23,10 +23,37 @@ const HOUSING_OPTIONS: { value: HousingType; label: string }[] = [
 
 const REGION_OPTIONS = [
   { value: 'seoul',    label: '서울' },
-  { value: 'gyeonggi',label: '수도권(서울 제외)' },
+  { value: 'gyeonggi', label: '수도권(서울 제외)' },
   { value: 'metro',    label: '광역시' },
   { value: 'other',    label: '기타 지역' },
 ]
+
+// ── 주택 유형 토글 ─────────────────────────────────────────────────────────
+
+function HousingTypeToggle({
+  value,
+  onChange,
+}: {
+  value: HousingType | null
+  onChange: (v: HousingType) => void
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {HOUSING_OPTIONS.map(({ value: v, label }) => (
+        <button
+          key={v}
+          onClick={() => onChange(v)}
+          className={`py-2 rounded-lg text-sm font-semibold border transition-colors cursor-pointer
+            ${value === v
+              ? 'bg-primary-light text-primary border-primary'
+              : 'bg-white text-sub border-border hover:border-primary'}`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  )
+}
 
 // ── 숫자 입력 필드 ─────────────────────────────────────────────────────────
 
@@ -39,20 +66,20 @@ function NumInput({ label, value, onChange, hint }: {
   const num = parseNumeric(value)
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs text-[#666]">{label}</label>
-      <div className="flex items-center h-9 border border-[#E5E8EB] rounded-lg px-3 focus-within:border-[#2C7FFF] transition-colors bg-white">
+      <label className="text-xs text-sub">{label}</label>
+      <div className="flex items-center h-9 border border-border rounded-lg px-3 focus-within:border-primary transition-colors bg-white">
         <input
           type="text"
           inputMode="numeric"
           value={value}
           onChange={e => onChange(formatNumericInput(e.target.value))}
           placeholder="0"
-          className="flex-1 text-sm text-[#222] outline-none bg-transparent"
+          className="flex-1 text-sm text-text outline-none bg-transparent"
         />
-        <span className="text-xs text-[#999] ml-1 shrink-0">원</span>
+        <span className="text-xs text-tertiary ml-1 shrink-0">원</span>
       </div>
-      {num > 0 && <p className="text-xs text-[#2C7FFF] px-0.5">{formatWon(num)}</p>}
-      {hint && <p className="text-xs text-[#999] px-0.5">{hint}</p>}
+      {num > 0 && <p className="text-xs text-primary px-0.5">{formatWon(num)}</p>}
+      {hint && <p className="text-xs text-tertiary px-0.5">{hint}</p>}
     </div>
   )
 }
@@ -65,11 +92,11 @@ function SelectInput({ label, value, options, onChange }: {
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs text-[#666]">{label}</label>
+      <label className="text-xs text-sub">{label}</label>
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="h-9 border border-[#E5E8EB] rounded-lg px-3 text-sm text-[#222] bg-white focus:border-[#2C7FFF] outline-none transition-colors"
+        className="h-9 border border-border rounded-lg px-3 text-sm text-text bg-white focus:border-primary outline-none transition-colors"
       >
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
@@ -77,15 +104,36 @@ function SelectInput({ label, value, options, onChange }: {
   )
 }
 
-function AreaInput({ value, onChange, options }: { value: string; onChange: (v: string) => void; options?: number[] }) {
+// 전용면적 선택
+function AreaInput({ value, onChange, options }: {
+  value: string
+  onChange: (v: string) => void
+  options: number[]
+}) {
+  const [isManual, setIsManual] = useState(false)
+  const showDropdown = options.length > 0 && !isManual
+
+  const switchToManual = () => { setIsManual(true); onChange('') }
+  const switchToList   = () => { setIsManual(false); onChange('') }
+
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs text-[#666]">전용 면적</label>
-      {options && options.length > 0 ? (
+      <div className="flex items-center justify-between">
+        <label className="text-xs text-sub">전용 면적</label>
+        {options.length > 0 && (
+          <button
+            onClick={showDropdown ? switchToManual : switchToList}
+            className="text-[11px] text-primary cursor-pointer"
+          >
+            {showDropdown ? '직접 입력' : '목록에서 선택'}
+          </button>
+        )}
+      </div>
+      {showDropdown ? (
         <select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="h-9 border border-[#E5E8EB] rounded-lg px-3 text-sm text-[#222] bg-white focus:outline-none focus:border-[#2C7FFF] transition-colors appearance-none cursor-pointer"
+          className="h-9 border border-border rounded-lg px-3 text-sm text-text bg-white focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
         >
           <option value="">선택</option>
           {options.map(a => (
@@ -93,37 +141,53 @@ function AreaInput({ value, onChange, options }: { value: string; onChange: (v: 
           ))}
         </select>
       ) : (
-        <div className="flex items-center h-9 border border-[#E5E8EB] rounded-lg px-3 focus-within:border-[#2C7FFF] transition-colors bg-white">
+        <div className="flex items-center h-9 border border-border rounded-lg px-3 focus-within:border-primary transition-colors bg-white">
           <input
             type="text"
             inputMode="numeric"
             value={value}
             onChange={e => onChange(e.target.value.replace(/[^0-9.]/g, ''))}
             placeholder="0"
-            className="flex-1 text-sm text-[#222] outline-none bg-transparent"
+            className="flex-1 text-sm text-text outline-none bg-transparent"
           />
-          <span className="text-xs text-[#999] ml-1 shrink-0">㎡</span>
+          <span className="text-xs text-tertiary ml-1 shrink-0">㎡</span>
         </div>
       )}
     </div>
   )
 }
 
-// ── 섹션 레이블 ────────────────────────────────────────────────────────────
+// ── 공통 레이아웃 ──────────────────────────────────────────────────────────
 
 function SLabel({ children }: { children: React.ReactNode }) {
-  return <p className="text-xs font-semibold text-[#999] uppercase tracking-wider mb-3">{children}</p>
+  return <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-3">{children}</p>
 }
 
 function STitle({ children }: { children: React.ReactNode }) {
-  return <p className="text-base font-semibold text-[#222] mb-3">{children}</p>
+  return <p className="text-base font-semibold text-text mb-3">{children}</p>
 }
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`bg-white rounded-xl border border-[#E5E8EB] p-5 ${className}`}>
+    <div className={`bg-white rounded-xl border border-border p-5 ${className}`}>
       {children}
     </div>
+  )
+}
+
+function DiagnoseButton({ onClick, disabled, children }: {
+  onClick: () => void
+  disabled: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="w-full h-10 rounded-lg text-sm font-semibold transition-colors cursor-pointer bg-primary text-white disabled:bg-border disabled:text-tertiary disabled:cursor-not-allowed"
+    >
+      {children}
+    </button>
   )
 }
 
@@ -131,9 +195,9 @@ function Card({ children, className = '' }: { children: React.ReactNode; classNa
 
 function ResultBanner({ grade, title, desc }: { grade: string; title: string; desc: string }) {
   const style =
-    grade === 'safe'    ? { bg: '#EAF3DE', border: '#C0DD97', titleColor: '#27500A', descColor: '#3B6D11', icon: '✓' } :
-    grade === 'caution' ? { bg: '#FAEEDA', border: '#FAC775', titleColor: '#633806', descColor: '#854F0B', icon: '!' } :
-                          { bg: '#FCEBEB', border: '#F7C1C1', titleColor: '#A32D2D', descColor: '#A32D2D', icon: '✕' }
+    grade === 'safe'    ? { bg: 'var(--color-success-bg)', border: 'var(--color-success-border)', titleColor: 'var(--color-success-text-dark)', descColor: 'var(--color-success-text)', icon: '✓' } :
+    grade === 'caution' ? { bg: 'var(--color-warning-bg)', border: 'var(--color-warning-border)', titleColor: 'var(--color-warning-text-dark)', descColor: 'var(--color-warning-text)', icon: '!' } :
+                          { bg: 'var(--color-danger-bg)', border: 'var(--color-danger-border)', titleColor: 'var(--color-danger-text)', descColor: 'var(--color-danger-text)', icon: '✕' }
 
   return (
     <div className="rounded-xl p-4 mb-4 border flex items-start gap-3" style={{ background: style.bg, borderColor: style.border }}>
@@ -150,10 +214,10 @@ function ResultBanner({ grade, title, desc }: { grade: string; title: string; de
 
 function MetricCard({ label, value, sub, valueColor }: { label: string; value: string; sub?: string; valueColor?: string }) {
   return (
-    <div className="bg-[#F7F8FA] rounded-xl p-3.5">
-      <p className="text-xs text-[#999] mb-1.5">{label}</p>
-      <p className="text-lg font-semibold" style={{ color: valueColor ?? '#222' }}>{value}</p>
-      {sub && <p className="text-[11px] text-[#999] mt-1">{sub}</p>}
+    <div className="bg-subtle rounded-xl p-3.5">
+      <p className="text-xs text-tertiary mb-1.5">{label}</p>
+      <p className="text-lg font-semibold" style={{ color: valueColor ?? 'var(--color-text)' }}>{value}</p>
+      {sub && <p className="text-[11px] text-tertiary mt-1">{sub}</p>}
     </div>
   )
 }
@@ -175,8 +239,8 @@ function JeonseResultView({ result }: { result: JeonseResult }) {
       <ResultBanner grade={risk.grade} title={bannerTitle} desc={bannerDesc} />
 
       <div className="grid grid-cols-3 gap-3">
-        <MetricCard label="전세가율" value={`${jeonsaeRatio}%`} sub={`기준 70% 이하`} valueColor={risk.color} />
-        <MetricCard label="부채비율" value={`${debtRatio}%`} sub="HUG 기준 90% 이하" valueColor={debtRatio > 90 ? '#FF3B30' : '#222'} />
+        <MetricCard label="전세가율" value={`${jeonsaeRatio}%`} sub="기준 70% 이하" valueColor={risk.color} />
+        <MetricCard label="부채비율" value={`${debtRatio}%`} sub="HUG 기준 90% 이하" valueColor={debtRatio > 90 ? 'var(--color-danger)' : 'var(--color-text)'} />
         <MetricCard
           label="추정 시세"
           value={formatWon(marketPrice)}
@@ -186,7 +250,7 @@ function JeonseResultView({ result }: { result: JeonseResult }) {
 
       <Card>
         <div className="flex items-center justify-between mb-1">
-          <p className="text-xs text-[#999]">전세가율 안전 구간</p>
+          <p className="text-xs text-tertiary">전세가율 안전 구간</p>
           <p className="text-xs font-semibold" style={{ color: risk.color }}>현재 {jeonsaeRatio}%</p>
         </div>
         <GaugeBar
@@ -194,8 +258,8 @@ function JeonseResultView({ result }: { result: JeonseResult }) {
           color={risk.color}
           ticks={[
             { pct: 0,   label: '0%' },
-            { pct: 70,  label: '70% 안전', color: '#34C759' },
-            { pct: 80,  label: '80% 주의', color: '#FF9500' },
+            { pct: 70,  label: '70% 안전', color: 'var(--color-success)' },
+            { pct: 80,  label: '80% 주의', color: 'var(--color-warning)' },
             { pct: 100, label: '100%' },
           ]}
         />
@@ -208,13 +272,13 @@ function JeonseResultView({ result }: { result: JeonseResult }) {
             { label: 'HUG 전세보증금반환보증', ok: hugPossible },
             { label: 'HF 전세자금보증',        ok: hfPossible },
           ].map(({ label, ok }) => (
-            <div key={label} className="flex items-center justify-between py-2 border-b border-[#F1F3F6] last:border-b-0">
-              <span className="text-sm text-[#444]">{label}</span>
+            <div key={label} className="flex items-center justify-between py-2 border-b border-bg last:border-b-0">
+              <span className="text-sm text-text-medium">{label}</span>
               <span
                 className="text-xs font-semibold px-2.5 py-1 rounded-full"
                 style={ok
-                  ? { background: '#EAF3DE', color: '#27500A' }
-                  : { background: '#FCEBEB', color: '#A32D2D' }}
+                  ? { background: 'var(--color-success-bg)', color: 'var(--color-success-text-dark)' }
+                  : { background: 'var(--color-danger-bg)', color: 'var(--color-danger-text)' }}
               >
                 {ok ? '가입 가능' : '가입 불가'}
               </span>
@@ -251,34 +315,34 @@ function MaemaeResultView({ result }: { result: MaemaeResult }) {
         <MetricCard label="최대 대출 한도" value={formatWon(maxLoan)} sub={`LTV ${ltvLimit}% 기준`} />
         <MetricCard label="필요 자기자본"  value={formatWon(requiredCapital)} sub="매매가+취득비용-대출" />
         <MetricCard label="월 예상 상환액" value={`${(monthlyRepayment / 10000).toFixed(0)}만원`} sub="30년 원리금균등, 연 4%" />
-        <MetricCard label="DSR" value={`${dsr}%`} sub="기준 40% 이하" valueColor={dsrOk ? '#34C759' : '#FF3B30'} />
+        <MetricCard label="DSR" value={`${dsr}%`} sub="기준 40% 이하" valueColor={dsrOk ? 'var(--color-success)' : 'var(--color-danger)'} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <Card>
-          <p className="text-xs text-[#999] mb-1">LTV 한도 현황 <span className="font-normal">— {regionLabel}</span></p>
+          <p className="text-xs text-tertiary mb-1">LTV 한도 현황 <span className="font-normal">— {regionLabel}</span></p>
           <GaugeBar
             value={ltvLimit}
-            color={ltvLimit >= 60 ? '#97C459' : ltvLimit >= 40 ? '#FAC775' : '#F87171'}
+            color={ltvLimit >= 60 ? 'var(--color-success-bar)' : ltvLimit >= 40 ? 'var(--color-warning-border)' : 'var(--color-danger-bar)'}
             ticks={[
-              { pct: 0,   label: '0%' },
-              { pct: ltvLimit, label: `${ltvLimit}%`, color: '#3B6D11' },
-              { pct: 80,  label: '80%' },
+              { pct: 0,       label: '0%' },
+              { pct: ltvLimit, label: `${ltvLimit}%`, color: 'var(--color-success-text)' },
+              { pct: 80,      label: '80%' },
             ]}
           />
         </Card>
         <Card>
           <div className="flex items-center gap-1 mb-1">
-            <p className="text-xs text-[#999]">DSR 현황</p>
+            <p className="text-xs text-tertiary">DSR 현황</p>
             <InfoTooltip text="DSR 기준은 정부 정책에 따라 자주 바뀔 수 있어요. 본 수치는 참고용이며 정확한 한도는 금융기관에 확인하세요." />
           </div>
           <GaugeBar
             value={dsr}
-            color={dsrOk ? '#97C459' : '#F87171'}
+            color={dsrOk ? 'var(--color-success-bar)' : 'var(--color-danger-bar)'}
             ticks={[
-              { pct: 0,  label: '0%' },
-              { pct: 40, label: '40% 한도', color: '#A32D2D' },
-              { pct: 100,label: '100%' },
+              { pct: 0,   label: '0%' },
+              { pct: 40,  label: '40% 한도', color: 'var(--color-danger-text)' },
+              { pct: 100, label: '100%' },
             ]}
           />
         </Card>
@@ -289,19 +353,19 @@ function MaemaeResultView({ result }: { result: MaemaeResult }) {
         <table className="w-full text-sm">
           <tbody>
             {acquisitionCosts.map((c, i) => (
-              <tr key={i} className="border-b border-[#F1F3F6] last:border-b-0">
-                <td className="py-2 text-[#666]">
+              <tr key={i} className="border-b border-bg last:border-b-0">
+                <td className="py-2 text-sub">
                   {c.label}
                   {c.badge && (
-                    <span className="ml-1.5 text-[11px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#FCEBEB', color: '#A32D2D' }}>{c.badge}</span>
+                    <span className="ml-1.5 text-[11px] font-medium px-1.5 py-0.5 rounded" style={{ background: 'var(--color-danger-bg)', color: 'var(--color-danger-text)' }}>{c.badge}</span>
                   )}
                 </td>
-                <td className="py-2 text-right font-medium text-[#222]">{formatWon(c.amount)}</td>
+                <td className="py-2 text-right font-medium text-text">{formatWon(c.amount)}</td>
               </tr>
             ))}
-            <tr className="border-t border-[#CDD1D5]">
-              <td className="pt-3 font-semibold text-[#222]">총 필요 금액</td>
-              <td className="pt-3 text-right font-bold text-[#222]">{formatWon(totalCost)}</td>
+            <tr className="border-t border-border-strong">
+              <td className="pt-3 font-semibold text-text">총 필요 금액</td>
+              <td className="pt-3 text-right font-bold text-text">{formatWon(totalCost)}</td>
             </tr>
           </tbody>
         </table>
@@ -312,9 +376,9 @@ function MaemaeResultView({ result }: { result: MaemaeResult }) {
           <STitle>가격 적정성</STitle>
           <table className="w-full text-sm">
             <tbody>
-              <tr className="border-b border-[#F1F3F6]">
-                <td className="py-2 text-[#666]">최근 실거래가 (3개월 평균)</td>
-                <td className="py-2 text-right font-medium text-[#222]">{formatWon(recentTradePrice)}</td>
+              <tr className="border-b border-bg">
+                <td className="py-2 text-sub">최근 실거래가 (3개월 평균)</td>
+                <td className="py-2 text-right font-medium text-text">{formatWon(recentTradePrice)}</td>
               </tr>
             </tbody>
           </table>
@@ -359,41 +423,40 @@ export default function DiagnosisPage() {
   const resultRef = useRef<HTMLDivElement>(null)
 
   // 전세 상태
+  const [jHousing,   setJHousing]   = useState<HousingType | null>(null)
+  const [jAddr,      setJAddr]      = useState<JeonseInput['address']>(null)
+  const [jAreaOpts,  setJAreaOpts]  = useState<number[]>([])
+  const [jArea,      setJArea]      = useState('')
   const [jDeposit,   setJDeposit]   = useState('')
   const [jMortgage,  setJMortgage]  = useState('')
-  const [jHousing,   setJHousing]   = useState<HousingType>('apt')
-  const [jArea,      setJArea]      = useState('')
-  const [jAreaOpts,  setJAreaOpts]  = useState<number[]>([])
   const [jMarket,    setJMarket]    = useState('')
-  const [jAddr,      setJAddr]      = useState<JeonseInput['address']>(null)
   const [jMarketSrc, setJMarketSrc] = useState<'api' | 'manual'>('manual')
   const [jFetching,  setJFetching]  = useState(false)
   const [jResult,    setJResult]    = useState<JeonseResult | null>(null)
 
   // 매매 상태
+  const [mHousing,  setMHousing]  = useState<HousingType | null>(null)
+  const [mAddr,     setMAddr]     = useState<MaemaeInput['address']>(null)
+  const [mAreaOpts, setMAreaOpts] = useState<number[]>([])
+  const [mArea,     setMArea]     = useState('')
   const [mPrice,    setMPrice]    = useState('')
-  const [mHousing,  setMHousing]  = useState<HousingType>('apt')
   const [mOwned,    setMOwned]    = useState<OwnedHomes>(0)
   const [mIncome,   setMIncome]   = useState('')
-  const [mArea,     setMArea]     = useState('')
-  const [mAreaOpts, setMAreaOpts] = useState<number[]>([])
-  const [mAddr,     setMAddr]     = useState<MaemaeInput['address']>(null)
   const [mResult,   setMResult]   = useState<MaemaeResult | null>(null)
 
   // 월세 상태
-  const [wDeposit,  setWDeposit]  = useState('')
-  const [wHousing,  setWHousing]  = useState<HousingType>('apt')
-  const [wRegion,   setWRegion]   = useState<MonthlyInput['region']>('seoul')
+  const [wHousing,  setWHousing]  = useState<HousingType | null>(null)
   const [wAddr,     setWAddr]     = useState<MonthlyInput['address']>(null)
+  const [wDeposit,  setWDeposit]  = useState('')
+  const [wRegion,   setWRegion]   = useState<MonthlyInput['region']>('seoul')
   const [wResult,   setWResult]   = useState<MonthlyResult | null>(null)
 
   const scrollToResult = () => {
     setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }
 
-  // 시세 자동 조회
-  const fetchMarket = async (addr: JeonseInput['address'], housing: HousingType, area: string) => {
-    if (!addr || !area) return
+  const fetchMarket = async (addr: NonNullable<JeonseInput['address']>, housing: HousingType, area: string) => {
+    if (!area) return
     setJFetching(true)
     const res = await fetchMarketPrice(addr.sigunguCode, addr.bname, housing, parseFloat(area))
     setJFetching(false)
@@ -403,236 +466,301 @@ export default function DiagnosisPage() {
     }
   }
 
+  // 전세 핸들러 — 주택 유형 or 주소가 변경될 때 상대편이 이미 입력되어 있으면 전용면적 조회
+  const handleJHousingChange = async (v: HousingType) => {
+    setJHousing(v)
+    setJArea('')
+    setJAreaOpts([])
+    if (jAddr) {
+      const areas = await fetchAvailableAreas(jAddr.sigunguCode, jAddr.bname, v)
+      setJAreaOpts(areas)
+      if (areas.length === 1) { setJArea(String(areas[0])); fetchMarket(jAddr, v, String(areas[0])) }
+    }
+  }
+
   const handleJAddr = async (a: NonNullable<JeonseInput['address']>) => {
     setJAddr(a)
     setJArea('')
-    const areas = await fetchAvailableAreas(a.sigunguCode, a.bname, jHousing)
-    setJAreaOpts(areas)
-    if (areas.length === 1) {
-      setJArea(String(areas[0]))
-      fetchMarket(a, jHousing, String(areas[0]))
-    } else {
-      fetchMarket(a, jHousing, jArea)
+    setJAreaOpts([])
+    if (jHousing) {
+      const areas = await fetchAvailableAreas(a.sigunguCode, a.bname, jHousing)
+      setJAreaOpts(areas)
+      if (areas.length === 1) { setJArea(String(areas[0])); fetchMarket(a, jHousing, String(areas[0])) }
+    }
+  }
+
+  // 매매 핸들러
+  const handleMHousingChange = async (v: HousingType) => {
+    setMHousing(v)
+    setMArea('')
+    setMAreaOpts([])
+    if (mAddr) {
+      const areas = await fetchAvailableAreas(mAddr.sigunguCode, mAddr.bname, v)
+      setMAreaOpts(areas)
+      if (areas.length === 1) setMArea(String(areas[0]))
     }
   }
 
   const handleMAddr = async (a: NonNullable<MaemaeInput['address']>) => {
     setMAddr(a)
     setMArea('')
-    const areas = await fetchAvailableAreas(a.sigunguCode, a.bname, mHousing)
-    setMAreaOpts(areas)
-    if (areas.length === 1) setMArea(String(areas[0]))
+    setMAreaOpts([])
+    if (mHousing) {
+      const areas = await fetchAvailableAreas(a.sigunguCode, a.bname, mHousing)
+      setMAreaOpts(areas)
+      if (areas.length === 1) setMArea(String(areas[0]))
+    }
   }
 
   const diagnoseJeonse = () => {
-    const input: JeonseInput = {
-      address: jAddr,
-      deposit:     parseNumeric(jDeposit),
-      mortgage:    parseNumeric(jMortgage),
-      housingType: jHousing,
-      area:        parseFloat(jArea) || 0,
-      marketPrice: parseNumeric(jMarket),
+    if (!jHousing) return
+    setJResult(calcJeonse({
+      address:           jAddr,
+      deposit:           parseNumeric(jDeposit),
+      mortgage:          parseNumeric(jMortgage),
+      housingType:       jHousing,
+      area:              parseFloat(jArea) || 0,
+      marketPrice:       parseNumeric(jMarket),
       marketPriceSource: jMarketSrc,
-    }
-    setJResult(calcJeonse(input))
+    }))
     scrollToResult()
   }
 
   const diagnoseMaemae = async () => {
-    const input: MaemaeInput = {
+    if (!mHousing) return
+    let recentPrice: number | null = null
+    if (mAddr && mArea) {
+      const res = await fetchMarketPrice(mAddr.sigunguCode, mAddr.bname, mHousing, parseFloat(mArea))
+      recentPrice = res?.avgPrice ?? null
+    }
+    setMResult(calcMaemae({
       address:       mAddr,
       purchasePrice: parseNumeric(mPrice),
       housingType:   mHousing,
       ownedHomes:    mOwned,
       annualIncome:  parseNumeric(mIncome),
       area:          parseFloat(mArea) || 0,
-    }
-    let recentPrice: number | null = null
-    if (mAddr && mArea) {
-      const res = await fetchMarketPrice(mAddr.sigunguCode, mAddr.bname, mHousing, parseFloat(mArea))
-      recentPrice = res?.avgPrice ?? null
-    }
-    setMResult(calcMaemae(input, recentPrice))
+    }, recentPrice))
     scrollToResult()
   }
 
   const diagnoseMonthly = () => {
-    const input: MonthlyInput = {
+    if (!wHousing) return
+    setWResult(calcMonthly({
       address:     wAddr,
       deposit:     parseNumeric(wDeposit),
       housingType: wHousing,
       region:      wRegion,
-    }
-    setWResult(calcMonthly(input))
+    }))
     scrollToResult()
   }
 
-  const canDiagnoseJeonse  = parseNumeric(jDeposit) > 0 && parseNumeric(jMarket) > 0
-  const canDiagnoseMaemae  = parseNumeric(mPrice) > 0 && parseNumeric(mIncome) > 0
-  const canDiagnoseMonthly = parseNumeric(wDeposit) > 0
+  const jStep1Done = jHousing !== null && jAddr !== null
+  const mStep1Done = mHousing !== null && mAddr !== null
+  const wStep1Done = wHousing !== null && wAddr !== null
+
+  const canDiagnoseJeonse  = jStep1Done && parseNumeric(jDeposit) > 0 && parseNumeric(jMarket) > 0
+  const canDiagnoseMaemae  = mStep1Done && parseNumeric(mPrice) > 0 && parseNumeric(mIncome) > 0
+  const canDiagnoseMonthly = wStep1Done && parseNumeric(wDeposit) > 0
 
   return (
-    <div className="w-full min-h-screen bg-[#F1F3F6]">
+    <div className="w-full min-h-screen bg-bg">
       <div className="w-full max-w-[640px] mx-auto bg-white min-h-screen">
 
         {/* 헤더 */}
-        <div className="sticky top-0 z-10 bg-white border-b border-[#F1F3F6]">
+        <div className="sticky top-0 z-10 bg-white border-b border-bg">
           <div className="flex items-center gap-3 px-4 pt-12 pb-3">
-            <button onClick={() => navigate('/diagnosis')} className="p-2 -ml-2 text-[#666]">
+            <button onClick={() => navigate('/diagnosis')} className="p-2 -ml-2 text-sub">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M15 19L8 12L15 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <h1 className="text-base font-bold text-[#222]">{TITLE[diagType]}</h1>
+            <h1 className="text-base font-bold text-text">{TITLE[diagType]}</h1>
           </div>
         </div>
 
         <div className="px-5 pt-5 pb-16 space-y-5">
 
-          {/* 전세 폼 */}
+          {/* ── 전세 ── */}
           {diagType === 'jeonse' && (
             <>
+              {/* Step 1 */}
               <div>
-                <SLabel>매물 정보 입력</SLabel>
                 <Card>
+                  <SLabel>매물 정보 입력</SLabel>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-xs text-[#666] mb-1.5 block">주소</label>
+                      <label className="text-xs text-sub mb-1.5 block">주택 유형</label>
+                      <HousingTypeToggle value={jHousing} onChange={handleJHousingChange} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-sub mb-1.5 block">주소</label>
                       <AddressSearch value={jAddr} onChange={handleJAddr} />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <NumInput label="전세 보증금" value={jDeposit} onChange={setJDeposit} />
-                      <NumInput
-                        label="선순위 근저당"
-                        value={jMortgage}
-                        onChange={setJMortgage}
-                        hint="등기부등본 기준"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <SelectInput label="주택 유형" value={jHousing} options={HOUSING_OPTIONS} onChange={v => setJHousing(v as HousingType)} />
-                      <AreaInput value={jArea} onChange={setJArea} options={jAreaOpts} />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        <label className="text-xs text-[#666]">추정 시세</label>
-                        {jMarketSrc === 'api' && (
-                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[#EBF2FF] text-[#2C7FFF]">
-                            국토부 실거래가
-                          </span>
-                        )}
-                        <InfoTooltip text="국토교통부 실거래가 기준으로 자동 조회됩니다. 주소를 먼저 입력해주세요. 조회가 어려운 경우 직접 입력하세요." />
-                      </div>
-                      <div className="flex items-center h-9 border border-[#E5E8EB] rounded-lg px-3 focus-within:border-[#2C7FFF] transition-colors bg-white">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={jMarket}
-                          onChange={e => { setJMarket(formatNumericInput(e.target.value)); setJMarketSrc('manual') }}
-                          placeholder={jFetching ? '조회 중...' : '0'}
-                          className="flex-1 text-sm text-[#222] outline-none bg-transparent"
-                        />
-                        <span className="text-xs text-[#999] ml-1 shrink-0">원</span>
-                      </div>
-                      {parseNumeric(jMarket) > 0 && <p className="text-xs text-[#2C7FFF] mt-1 px-0.5">{formatWon(parseNumeric(jMarket))}</p>}
-                    </div>
-                    <button
-                      onClick={diagnoseJeonse}
-                      disabled={!canDiagnoseJeonse}
-                      className="w-full h-10 rounded-lg text-sm font-semibold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                      style={{ background: canDiagnoseJeonse ? '#2C7FFF' : '#E5E8EB', color: canDiagnoseJeonse ? 'white' : '#999' }}
-                    >
-                      안전 진단하기
-                    </button>
                   </div>
                 </Card>
               </div>
-              {jResult && (
-                <div ref={resultRef}>
-                  <JeonseResultView result={jResult} />
-                </div>
+
+              {jStep1Done && (
+                <>
+                  {/* Step 2: 전용면적 + 추정 시세 */}
+                  <Card>
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <SLabel>전용면적 및 시세</SLabel>
+                      <InfoTooltip text="국토교통부 실거래가 기준으로 자동 조회됩니다. 조회가 안되는 경우 직접 입력하세요." />
+                    </div>
+                    <div className="space-y-3">
+                      <AreaInput key={jAreaOpts.join(',')} value={jArea} onChange={setJArea} options={jAreaOpts} />
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <label className="text-xs text-sub">추정 시세</label>
+                          {jMarketSrc === 'api' && (
+                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary-light text-primary">
+                              국토부 실거래가
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center h-9 border border-border rounded-lg px-3 focus-within:border-primary transition-colors bg-white">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={jMarket}
+                            onChange={e => { setJMarket(formatNumericInput(e.target.value)); setJMarketSrc('manual') }}
+                            placeholder={jFetching ? '조회 중...' : '0'}
+                            className="flex-1 text-sm text-text outline-none bg-transparent"
+                          />
+                          <span className="text-xs text-tertiary ml-1 shrink-0">원</span>
+                        </div>
+                        {parseNumeric(jMarket) > 0 && (
+                          <p className="text-xs text-primary mt-1 px-0.5">{formatWon(parseNumeric(jMarket))}</p>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Step 3: 나머지 정보 */}
+                  <Card>
+                    <SLabel>추가 정보 입력</SLabel>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <NumInput label="전세 보증금" value={jDeposit} onChange={setJDeposit} />
+                        <NumInput label="선순위 근저당" value={jMortgage} onChange={setJMortgage} hint="등기부등본 기준" />
+                      </div>
+                      <DiagnoseButton onClick={diagnoseJeonse} disabled={!canDiagnoseJeonse}>
+                        안전 진단하기
+                      </DiagnoseButton>
+                    </div>
+                  </Card>
+                </>
               )}
+
+              {jResult && <div ref={resultRef}><JeonseResultView result={jResult} /></div>}
             </>
           )}
 
-          {/* 매매 폼 */}
+          {/* ── 매매 ── */}
           {diagType === 'maemae' && (
             <>
+              {/* Step 1 */}
               <div>
                 <SLabel>매물 정보 입력</SLabel>
                 <Card>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-xs text-[#666] mb-1.5 block">주소</label>
+                      <label className="text-xs text-sub mb-1.5 block">주택 유형</label>
+                      <HousingTypeToggle value={mHousing} onChange={handleMHousingChange} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-sub mb-1.5 block">주소</label>
                       <AddressSearch value={mAddr} onChange={handleMAddr} />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <NumInput label="매매 희망가" value={mPrice} onChange={setMPrice} />
-                      <SelectInput label="주택 유형" value={mHousing} options={HOUSING_OPTIONS} onChange={v => setMHousing(v as HousingType)} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <SelectInput
-                        label="현재 보유 주택 수"
-                        value={String(mOwned)}
-                        options={[{ value: '0', label: '0주택 (무주택)' }, { value: '1', label: '1주택' }, { value: '2', label: '2주택 이상' }]}
-                        onChange={v => setMOwned(Number(v) as OwnedHomes)}
-                      />
-                      <NumInput label="연소득" value={mIncome} onChange={setMIncome} />
-                    </div>
-                    <AreaInput value={mArea} onChange={setMArea} options={mAreaOpts} />
-                    <button
-                      onClick={diagnoseMaemae}
-                      disabled={!canDiagnoseMaemae}
-                      className="w-full h-10 rounded-lg text-sm font-semibold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                      style={{ background: canDiagnoseMaemae ? '#2C7FFF' : '#E5E8EB', color: canDiagnoseMaemae ? 'white' : '#999' }}
-                    >
-                      안전 진단하기
-                    </button>
                   </div>
                 </Card>
               </div>
-              {mResult && (
-                <div ref={resultRef}>
-                  <MaemaeResultView result={mResult} />
-                </div>
+
+              {mStep1Done && (
+                <>
+                  {/* Step 2: 전용면적 */}
+                  <Card>
+                    <SLabel>전용면적</SLabel>
+                    <AreaInput key={mAreaOpts.join(',')} value={mArea} onChange={setMArea} options={mAreaOpts} />
+                  </Card>
+
+                  {/* Step 3: 나머지 정보 */}
+                  <Card>
+                    <SLabel>추가 정보 입력</SLabel>
+                    <div className="space-y-3">
+                      <NumInput label="매매 희망가" value={mPrice} onChange={setMPrice} />
+                      <div className="grid grid-cols-2 gap-3">
+                        <SelectInput
+                          label="현재 보유 주택 수"
+                          value={String(mOwned)}
+                          options={[
+                            { value: '0', label: '0주택 (무주택)' },
+                            { value: '1', label: '1주택' },
+                            { value: '2', label: '2주택 이상' },
+                          ]}
+                          onChange={v => setMOwned(Number(v) as OwnedHomes)}
+                        />
+                        <NumInput label="연소득" value={mIncome} onChange={setMIncome} />
+                      </div>
+                      <DiagnoseButton onClick={diagnoseMaemae} disabled={!canDiagnoseMaemae}>
+                        안전 진단하기
+                      </DiagnoseButton>
+                    </div>
+                  </Card>
+                </>
               )}
+
+              {mResult && <div ref={resultRef}><MaemaeResultView result={mResult} /></div>}
             </>
           )}
 
-          {/* 월세 폼 */}
+          {/* ── 월세 ── */}
           {diagType === 'monthly' && (
             <>
+              {/* Step 1 */}
               <div>
                 <SLabel>매물 정보 입력</SLabel>
                 <Card>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-xs text-[#666] mb-1.5 block">주소</label>
+                      <label className="text-xs text-sub mb-1.5 block">주택 유형</label>
+                      <HousingTypeToggle value={wHousing} onChange={v => setWHousing(v)} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-sub mb-1.5 block">주소</label>
                       <AddressSearch value={wAddr} onChange={setWAddr} />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <NumInput label="보증금" value={wDeposit} onChange={setWDeposit} />
-                      <SelectInput label="주택 유형" value={wHousing} options={HOUSING_OPTIONS} onChange={v => setWHousing(v as HousingType)} />
-                    </div>
-                    <SelectInput label="지역" value={wRegion} options={REGION_OPTIONS} onChange={v => setWRegion(v as MonthlyInput['region'])} />
-                    <button
-                      onClick={diagnoseMonthly}
-                      disabled={!canDiagnoseMonthly}
-                      className="w-full h-10 rounded-lg text-sm font-semibold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                      style={{ background: canDiagnoseMonthly ? '#2C7FFF' : '#E5E8EB', color: canDiagnoseMonthly ? 'white' : '#999' }}
-                    >
-                      안전 진단하기
-                    </button>
                   </div>
                 </Card>
               </div>
-              {wResult && (
-                <div ref={resultRef}>
-                  <MonthlyResultView result={wResult} />
-                </div>
+
+              {/* Step 3: 나머지 정보 (월세는 전용면적 불필요) */}
+              {wStep1Done && (
+                <Card>
+                  <SLabel>추가 정보 입력</SLabel>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <NumInput label="보증금" value={wDeposit} onChange={setWDeposit} />
+                      <SelectInput
+                        label="지역"
+                        value={wRegion}
+                        options={REGION_OPTIONS}
+                        onChange={v => setWRegion(v as MonthlyInput['region'])}
+                      />
+                    </div>
+                    <DiagnoseButton onClick={diagnoseMonthly} disabled={!canDiagnoseMonthly}>
+                      안전 진단하기
+                    </DiagnoseButton>
+                  </div>
+                </Card>
               )}
+
+              {wResult && <div ref={resultRef}><MonthlyResultView result={wResult} /></div>}
             </>
           )}
+
         </div>
       </div>
     </div>

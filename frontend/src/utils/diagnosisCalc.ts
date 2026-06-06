@@ -8,9 +8,9 @@ import type {
 // ── 공통 ──────────────────────────────────────────────────────────────────
 
 function riskFromRatio(ratio: number): RiskLevel {
-  if (ratio < 70) return { grade: 'safe',    label: '안전', color: '#34C759', bg: '#EAF3DE' }
-  if (ratio < 80) return { grade: 'caution', label: '주의', color: '#FF9500', bg: '#FAEEDA' }
-  return               { grade: 'danger',  label: '위험', color: '#FF3B30', bg: '#FCEBEB' }
+  if (ratio < 70) return { grade: 'safe',    label: '안전', color: 'var(--color-success)', bg: 'var(--color-success-bg)' }
+  if (ratio < 80) return { grade: 'caution', label: '주의', color: 'var(--color-warning)', bg: 'var(--color-warning-bg)' }
+  return               { grade: 'danger',  label: '위험', color: 'var(--color-danger)',  bg: 'var(--color-danger-bg)' }
 }
 
 // ── 전세 ──────────────────────────────────────────────────────────────────
