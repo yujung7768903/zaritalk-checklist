@@ -9,8 +9,9 @@ declare global {
           roadAddress: string
           jibunAddress: string
           sigunguCode: string
-          dongName: string
+          bname: string
           zonecode: string
+          buildingName: string
         }) => void
       }) => { open: () => void }
     }
@@ -38,8 +39,9 @@ export default function AddressSearch({ value, onChange }: Props) {
           roadAddress: data.roadAddress,
           jibunAddress: data.jibunAddress,
           sigunguCode: data.sigunguCode,
-          dongName: data.dongName,
+          dongName: data.bname,
           zonecode: data.zonecode,
+          buildingName: data.buildingName || undefined,
         })
       },
     }).open()

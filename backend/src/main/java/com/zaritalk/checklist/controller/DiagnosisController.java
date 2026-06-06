@@ -25,9 +25,10 @@ public class DiagnosisController {
     public ResponseEntity<AvailableAreasResponse> getAvailableAreas(
             @RequestParam String sigunguCode,
             @RequestParam String dongName,
-            @RequestParam String housingType
+            @RequestParam String housingType,
+            @RequestParam(required = false, defaultValue = "") String aptName
     ) {
-        List<Double> areas = molitApiService.fetchAvailableAreas(sigunguCode, dongName, housingType);
+        List<Double> areas = molitApiService.fetchAvailableAreas(sigunguCode, dongName, housingType, aptName);
         if (areas.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(new AvailableAreasResponse(areas));
     }
@@ -37,9 +38,10 @@ public class DiagnosisController {
             @RequestParam String sigunguCode,
             @RequestParam String dongName,
             @RequestParam String housingType,
-            @RequestParam(defaultValue = "0") double area
+            @RequestParam(defaultValue = "0") double area,
+            @RequestParam(required = false, defaultValue = "") String aptName
     ) {
-        MolitApiService.TransactionResult result = molitApiService.fetchRecentAvg(sigunguCode, dongName, housingType, area);
+        MolitApiService.TransactionResult result = molitApiService.fetchRecentAvg(sigunguCode, dongName, housingType, area, aptName);
         if (result == null) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(new TransactionResponse((long) result.avgPrice(), result.count(), "api"));
     }

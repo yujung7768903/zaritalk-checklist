@@ -8,6 +8,7 @@ export interface AddressInfo {
   sigunguCode: string
   dongName: string
   zonecode: string
+  buildingName?: string
 }
 
 export interface JeonseInput {

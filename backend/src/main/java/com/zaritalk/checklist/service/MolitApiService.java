@@ -36,19 +36,24 @@ public class MolitApiService {
 
     public record TransactionResult(double avgPrice, int count) {}
 
-    public TransactionResult fetchRecentAvg(String sigunguCode, String dongName, String housingType, double area) {
+    public TransactionResult fetchRecentAvg(String sigunguCode, String dongName, String housingType, double area, String aptName) {
         String baseUrl = "villa".equals(housingType) ? VILLA_URL : APT_URL;
-        List<Long> prices = new ArrayList<>();
+        List<MolitTradeItemDto> allItems = new ArrayList<>();
 
         for (int i = 0; i < 3; i++) {
             String ym = LocalDate.now().minusMonths(i).format(DateTimeFormatter.ofPattern("yyyyMM"));
             try {
                 String url = buildUrl(baseUrl, sigunguCode, ym);
                 MolitApiResponseDto res = restTemplate.getForObject(url, MolitApiResponseDto.class);
-                prices.addAll(extractPrices(res, dongName, area));
+                allItems.addAll(resolveItems(res));
             } catch (Exception e) {
                 log.warn("MOLIT 실거래가 조회 실패 [sigunguCode={}, ym={}]: {}", sigunguCode, ym, e.getMessage());
             }
+        }
+
+        List<Long> prices = extractPricesFromItems(allItems, dongName, aptName, area, true);
+        if (prices.isEmpty()) {
+            prices = extractPricesFromItems(allItems, dongName, "", area, false);
         }
 
         if (prices.isEmpty()) return null;
@@ -56,27 +61,33 @@ public class MolitApiService {
         return avg.isPresent() ? new TransactionResult(avg.getAsDouble(), prices.size()) : null;
     }
 
-    public List<Double> fetchAvailableAreas(String sigunguCode, String dongName, String housingType) {
-        log.info("전용면적 조회 시작 [sigunguCode={}, dongName={}, housingType={}]", sigunguCode, dongName, housingType);
+    public List<Double> fetchAvailableAreas(String sigunguCode, String dongName, String housingType, String aptName) {
+        log.info("전용면적 조회 시작 [sigunguCode={}, dongName={}, housingType={}, aptName={}]", sigunguCode, dongName, housingType, aptName);
         String baseUrl = "villa".equals(housingType) ? VILLA_URL : APT_URL;
-        TreeSet<Double> areas = new TreeSet<>();
+        List<MolitTradeItemDto> allItems = new ArrayList<>();
 
         for (int i = 0; i < 3; i++) {
             String ym = LocalDate.now().minusMonths(i).format(DateTimeFormatter.ofPattern("yyyyMM"));
             try {
                 String url = buildUrl(baseUrl, sigunguCode, ym);
                 MolitApiResponseDto res = restTemplate.getForObject(url, MolitApiResponseDto.class);
-                log.info("MOLIT 응답 [ym={}]: {}", ym, res);
-                List<Double> monthlyAreas = extractAreaValues(res, dongName);
-                log.info("전용면적 추출 [ym={}, count={}]: {}", ym, monthlyAreas.size(), monthlyAreas);
-                areas.addAll(monthlyAreas);
+                allItems.addAll(resolveItems(res));
             } catch (Exception e) {
                 log.warn("MOLIT 전용면적 조회 실패 [sigunguCode={}, ym={}]: {}", sigunguCode, ym, e.getMessage());
             }
         }
 
-        log.info("전용면적 조회 완료 [총 {}건]: {}", areas.size(), areas);
-        return new ArrayList<>(areas);
+        List<Double> byApt = extractAreaValuesFromItems(allItems, dongName, aptName, true);
+        if (!byApt.isEmpty()) {
+            log.info("건물명 매칭 완료 [aptName={}, count={}]", aptName, byApt.size());
+            return new ArrayList<>(new TreeSet<>(byApt));
+        }
+
+        List<Double> byDong = extractAreaValuesFromItems(allItems, dongName, "", false);
+        log.info("동 필터 fallback [dongName={}, count={}]", dongName, byDong.size());
+        TreeSet<Double> result = new TreeSet<>(byDong);
+        log.info("전용면적 조회 완료 [총 {}건]: {}", result.size(), result);
+        return new ArrayList<>(result);
     }
 
     private String buildUrl(String baseUrl, String sigunguCode, String ym) {
@@ -88,14 +99,15 @@ public class MolitApiService {
                 + "&_type=json";
     }
 
-    private List<Double> extractAreaValues(MolitApiResponseDto res, String dongName) {
+    private List<Double> extractAreaValuesFromItems(List<MolitTradeItemDto> items, String dongName, String aptName, boolean useAptFilter) {
         List<Double> result = new ArrayList<>();
-        List<MolitTradeItemDto> items = resolveItems(res);
         for (MolitTradeItemDto row : items) {
             String dong    = nullSafe(row.umdNm());
+            String aptNm   = nullSafe(row.aptNm());
             String areaStr = nullSafe(row.excluUseAr());
             if (areaStr.isEmpty()) continue;
-            if (!dongName.isBlank() && !dong.contains(dongName.replace("동", ""))) continue;
+            if (!matchesDong(dong, dongName)) continue;
+            if (useAptFilter && !aptName.isBlank() && !matchesApt(aptNm, aptName)) continue;
             try {
                 double area = Math.round(Double.parseDouble(areaStr) * 10.0) / 10.0;
                 if (area > 0) result.add(area);
@@ -106,21 +118,39 @@ public class MolitApiService {
         return result;
     }
 
-    private List<Long> extractPrices(MolitApiResponseDto res, String dongName, double area) {
+    private List<Long> extractPricesFromItems(List<MolitTradeItemDto> items, String dongName, String aptName, double area, boolean useAptFilter) {
         List<Long> prices = new ArrayList<>();
-        List<MolitTradeItemDto> items = resolveItems(res);
         for (MolitTradeItemDto row : items) {
             String dong     = nullSafe(row.umdNm());
+            String aptNm    = nullSafe(row.aptNm());
             String areaStr  = nullSafe(row.excluUseAr());
             String priceStr = nullSafe(row.dealAmount()).replaceAll("[^0-9]", "");
             if (areaStr.isEmpty() || priceStr.isEmpty()) continue;
+            if (!matchesDong(dong, dongName)) continue;
+            if (useAptFilter && !aptName.isBlank() && !matchesApt(aptNm, aptName)) continue;
             double rowArea = Double.parseDouble(areaStr);
-            if (Math.abs(rowArea - area) <= 5 && (dongName.isBlank() || dong.contains(dongName.replace("동", "")))) {
+            if (Math.abs(rowArea - area) <= 5) {
                 long price = Long.parseLong(priceStr) * 10_000L;
                 if (price > 0) prices.add(price);
             }
         }
         return prices;
+    }
+
+    private boolean matchesDong(String umdNm, String dongName) {
+        if (dongName.isBlank()) return true;
+        String target = dongName.endsWith("동") ? dongName : dongName + "동";
+        return umdNm.equals(target);
+    }
+
+    private boolean matchesApt(String aptNm, String aptName) {
+        String a = normalize(aptNm);
+        String b = normalize(aptName);
+        return a.contains(b) || b.contains(a);
+    }
+
+    private String normalize(String s) {
+        return s.replaceAll("아파트|빌라|연립|오피스텔|\\s", "").toLowerCase();
     }
 
     private List<MolitTradeItemDto> resolveItems(MolitApiResponseDto res) {

@@ -13,10 +13,11 @@ export async function fetchMarketPrice(
   dongName: string,
   housingType: string,
   area: number,
+  buildingName?: string,
 ): Promise<TransactionResult | null> {
   try {
     const res = await axios.get(`${BASE_URL}/api/v1/molit/transactions`, {
-      params: { sigunguCode, dongName, housingType, area },
+      params: { sigunguCode, dongName, housingType, area, aptName: buildingName },
     })
     return res.data
   } catch {
@@ -29,10 +30,11 @@ export async function fetchAvailableAreas(
   sigunguCode: string,
   dongName: string,
   housingType: string,
+  buildingName?: string,
 ): Promise<number[]> {
   try {
     const res = await axios.get(`${BASE_URL}/api/v1/molit/areas`, {
-      params: { sigunguCode, dongName, housingType },
+      params: { sigunguCode, dongName, housingType, aptName: buildingName },
     })
     return res.data.areas ?? []
   } catch {
