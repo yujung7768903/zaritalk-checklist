@@ -41,6 +41,7 @@ export const glossaryTerms: GlossaryTerm[] = [
   { id: 'content-cert', term: '내용증명', category: '이사', meaning: '언제 어떤 내용을 보냈는지 증명하는 우편', detail: '계약 해지 통보나 보증금 반환 요청 시 활용합니다. 우체국에서 발송할 수 있습니다.' },
   { id: 'building-register', term: '건축물대장', category: '건물', meaning: '건물 정보를 기록한 문서', detail: '위반건축물 여부, 건물 용도 등을 확인할 수 있습니다. 전세보증보험 가입 가능 여부에 영향을 미칩니다.' },
   { id: 'illegal-building', term: '위반건축물', category: '건물', meaning: '건축법을 위반한 건물', detail: '위반건축물로 등재된 집은 전세대출과 보증보험 가입이 거절될 수 있습니다.' },
+  { id: 'illegal-building', term: '전용면적', category: '건물', meaning: '입주자가 단독으로 사용하는 공간의 면적', detail: '벽 안쪽 기준으로 측정하며, 방·거실·주방·화장실 등이 포함됩니다.' },
   { id: 'realtor', term: '개업공인중개사', category: '중개사', meaning: '중개사무소를 운영하는 공인중개사', detail: '계약서에 날인할 수 있는 주체입니다. 계약서를 쓸 때 반드시 개업공인중개사인지 확인하세요.' },
 ]
 
