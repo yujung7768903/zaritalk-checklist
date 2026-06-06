@@ -4,20 +4,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zaritalk.checklist.domain.User;
 import com.zaritalk.checklist.dto.LoginResponse;
-import com.zaritalk.checklist.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class KakaoAuthService {
 
@@ -33,7 +29,7 @@ public class KakaoAuthService {
     @Value("${kakao.redirect-uri:http://localhost:5174}")
     private String redirectUri;
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final JwtService jwtService;
     private final RestClient restClient = RestClient.create();
 
@@ -75,19 +71,9 @@ public class KakaoAuthService {
 
     private LoginResponse loginWithToken(String accessToken) {
         KakaoUserInfo kakaoUser = fetchKakaoUserInfo(accessToken);
-        User user = findOrCreateUser(kakaoUser);
+        User user = userService.findOrCreate(kakaoUser.id(), kakaoUser.nickname());
         String token = jwtService.generateToken(user.getPk());
         return new LoginResponse(user.getPk(), user.getNickname(), token);
-    }
-
-    private User findOrCreateUser(KakaoUserInfo kakaoUser) {
-        try {
-            return userRepository.findByKakaoId(kakaoUser.id())
-                    .orElseGet(() -> userRepository.save(User.create(kakaoUser.id(), kakaoUser.nickname())));
-        } catch (DataIntegrityViolationException e) {
-            return userRepository.findByKakaoId(kakaoUser.id())
-                    .orElseThrow(() -> new IllegalStateException("사용자 생성에 실패했습니다."));
-        }
     }
 
     private KakaoUserInfo fetchKakaoUserInfo(String accessToken) {
