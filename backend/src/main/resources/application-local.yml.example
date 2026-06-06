@@ -1,0 +1,10 @@
+kakao:
+  rest-api-key: YOUR_KAKAO_REST_API_KEY
+  client-secret: YOUR_KAKAO_CLIENT_SECRET
+  redirect-uri: http://localhost:5174
+
+jwt:
+  secret: YOUR_JWT_SECRET_BASE64
+
+molit:
+  api-key: YOUR_MOLIT_API_KEY

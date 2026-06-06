@@ -9,6 +9,7 @@ frontend/.env.local
 
 # Backend
 backend/target/
+backend/src/main/resources/application-local.yml
 
 # OS
 .DS_Store
