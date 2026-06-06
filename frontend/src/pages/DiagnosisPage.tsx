@@ -458,7 +458,7 @@ export default function DiagnosisPage() {
   const fetchMarket = async (addr: NonNullable<JeonseInput['address']>, housing: HousingType, area: string) => {
     if (!area) return
     setJFetching(true)
-    const res = await fetchMarketPrice(addr.sigunguCode, addr.bname, housing, parseFloat(area))
+    const res = await fetchMarketPrice(addr.sigunguCode, addr.dongName, housing, parseFloat(area))
     setJFetching(false)
     if (res) {
       setJMarket(res.avgPrice.toLocaleString('ko-KR'))
@@ -472,7 +472,7 @@ export default function DiagnosisPage() {
     setJArea('')
     setJAreaOpts([])
     if (jAddr) {
-      const areas = await fetchAvailableAreas(jAddr.sigunguCode, jAddr.bname, v)
+      const areas = await fetchAvailableAreas(jAddr.sigunguCode, jAddr.dongName, v)
       setJAreaOpts(areas)
       if (areas.length === 1) { setJArea(String(areas[0])); fetchMarket(jAddr, v, String(areas[0])) }
     }
@@ -483,7 +483,7 @@ export default function DiagnosisPage() {
     setJArea('')
     setJAreaOpts([])
     if (jHousing) {
-      const areas = await fetchAvailableAreas(a.sigunguCode, a.bname, jHousing)
+      const areas = await fetchAvailableAreas(a.sigunguCode, a.dongName, jHousing)
       setJAreaOpts(areas)
       if (areas.length === 1) { setJArea(String(areas[0])); fetchMarket(a, jHousing, String(areas[0])) }
     }
@@ -495,7 +495,7 @@ export default function DiagnosisPage() {
     setMArea('')
     setMAreaOpts([])
     if (mAddr) {
-      const areas = await fetchAvailableAreas(mAddr.sigunguCode, mAddr.bname, v)
+      const areas = await fetchAvailableAreas(mAddr.sigunguCode, mAddr.dongName, v)
       setMAreaOpts(areas)
       if (areas.length === 1) setMArea(String(areas[0]))
     }
@@ -506,7 +506,7 @@ export default function DiagnosisPage() {
     setMArea('')
     setMAreaOpts([])
     if (mHousing) {
-      const areas = await fetchAvailableAreas(a.sigunguCode, a.bname, mHousing)
+      const areas = await fetchAvailableAreas(a.sigunguCode, a.dongName, mHousing)
       setMAreaOpts(areas)
       if (areas.length === 1) setMArea(String(areas[0]))
     }
@@ -530,7 +530,7 @@ export default function DiagnosisPage() {
     if (!mHousing) return
     let recentPrice: number | null = null
     if (mAddr && mArea) {
-      const res = await fetchMarketPrice(mAddr.sigunguCode, mAddr.bname, mHousing, parseFloat(mArea))
+      const res = await fetchMarketPrice(mAddr.sigunguCode, mAddr.dongName, mHousing, parseFloat(mArea))
       recentPrice = res?.avgPrice ?? null
     }
     setMResult(calcMaemae({

@@ -10,13 +10,13 @@ export interface TransactionResult {
 
 export async function fetchMarketPrice(
   sigunguCode: string,
-  bname: string,
+  dongName: string,
   housingType: string,
   area: number,
 ): Promise<TransactionResult | null> {
   try {
     const res = await axios.get(`${BASE_URL}/api/v1/molit/transactions`, {
-      params: { sigunguCode, bname, housingType, area },
+      params: { sigunguCode, dongName, housingType, area },
     })
     return res.data
   } catch {
@@ -24,14 +24,15 @@ export async function fetchMarketPrice(
   }
 }
 
+// 전용면적 조회
 export async function fetchAvailableAreas(
   sigunguCode: string,
-  bname: string,
+  dongName: string,
   housingType: string,
 ): Promise<number[]> {
   try {
     const res = await axios.get(`${BASE_URL}/api/v1/molit/areas`, {
-      params: { sigunguCode, bname, housingType },
+      params: { sigunguCode, dongName, housingType },
     })
     return res.data.areas ?? []
   } catch {

@@ -36,7 +36,7 @@ public class MolitApiService {
 
     public record TransactionResult(double avgPrice, int count) {}
 
-    public TransactionResult fetchRecentAvg(String sigunguCode, String bname, String housingType, double area) {
+    public TransactionResult fetchRecentAvg(String sigunguCode, String dongName, String housingType, double area) {
         String baseUrl = "villa".equals(housingType) ? VILLA_URL : APT_URL;
         List<Long> prices = new ArrayList<>();
 
@@ -45,7 +45,7 @@ public class MolitApiService {
             try {
                 String url = buildUrl(baseUrl, sigunguCode, ym);
                 MolitApiResponseDto res = restTemplate.getForObject(url, MolitApiResponseDto.class);
-                prices.addAll(extractPrices(res, bname, area));
+                prices.addAll(extractPrices(res, dongName, area));
             } catch (Exception e) {
                 log.warn("MOLIT 실거래가 조회 실패 [sigunguCode={}, ym={}]: {}", sigunguCode, ym, e.getMessage());
             }
@@ -56,8 +56,8 @@ public class MolitApiService {
         return avg.isPresent() ? new TransactionResult(avg.getAsDouble(), prices.size()) : null;
     }
 
-    public List<Double> fetchAvailableAreas(String sigunguCode, String bname, String housingType) {
-        log.info("전용면적 조회 시작 [sigunguCode={}, bname={}, housingType={}]", sigunguCode, bname, housingType);
+    public List<Double> fetchAvailableAreas(String sigunguCode, String dongName, String housingType) {
+        log.info("전용면적 조회 시작 [sigunguCode={}, dongName={}, housingType={}]", sigunguCode, dongName, housingType);
         String baseUrl = "villa".equals(housingType) ? VILLA_URL : APT_URL;
         TreeSet<Double> areas = new TreeSet<>();
 
@@ -66,8 +66,8 @@ public class MolitApiService {
             try {
                 String url = buildUrl(baseUrl, sigunguCode, ym);
                 MolitApiResponseDto res = restTemplate.getForObject(url, MolitApiResponseDto.class);
-                log.debug("MOLIT 응답 [ym={}]: {}", ym, res);
-                List<Double> monthlyAreas = extractAreaValues(res, bname);
+                log.info("MOLIT 응답 [ym={}]: {}", ym, res);
+                List<Double> monthlyAreas = extractAreaValues(res, dongName);
                 log.info("전용면적 추출 [ym={}, count={}]: {}", ym, monthlyAreas.size(), monthlyAreas);
                 areas.addAll(monthlyAreas);
             } catch (Exception e) {
@@ -88,14 +88,14 @@ public class MolitApiService {
                 + "&_type=json";
     }
 
-    private List<Double> extractAreaValues(MolitApiResponseDto res, String bname) {
+    private List<Double> extractAreaValues(MolitApiResponseDto res, String dongName) {
         List<Double> result = new ArrayList<>();
         List<MolitTradeItemDto> items = resolveItems(res);
         for (MolitTradeItemDto row : items) {
             String dong    = nullSafe(row.umdNm());
             String areaStr = nullSafe(row.excluUseAr());
             if (areaStr.isEmpty()) continue;
-            if (!bname.isBlank() && !dong.contains(bname.replace("동", ""))) continue;
+            if (!dongName.isBlank() && !dong.contains(dongName.replace("동", ""))) continue;
             try {
                 double area = Math.round(Double.parseDouble(areaStr) * 10.0) / 10.0;
                 if (area > 0) result.add(area);
@@ -106,7 +106,7 @@ public class MolitApiService {
         return result;
     }
 
-    private List<Long> extractPrices(MolitApiResponseDto res, String bname, double area) {
+    private List<Long> extractPrices(MolitApiResponseDto res, String dongName, double area) {
         List<Long> prices = new ArrayList<>();
         List<MolitTradeItemDto> items = resolveItems(res);
         for (MolitTradeItemDto row : items) {
@@ -115,7 +115,7 @@ public class MolitApiService {
             String priceStr = nullSafe(row.dealAmount()).replaceAll("[^0-9]", "");
             if (areaStr.isEmpty() || priceStr.isEmpty()) continue;
             double rowArea = Double.parseDouble(areaStr);
-            if (Math.abs(rowArea - area) <= 5 && (bname.isBlank() || dong.contains(bname.replace("동", "")))) {
+            if (Math.abs(rowArea - area) <= 5 && (dongName.isBlank() || dong.contains(dongName.replace("동", "")))) {
                 long price = Long.parseLong(priceStr) * 10_000L;
                 if (price > 0) prices.add(price);
             }

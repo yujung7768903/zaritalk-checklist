@@ -6,7 +6,7 @@ export interface AddressInfo {
   roadAddress: string
   jibunAddress: string
   sigunguCode: string
-  bname: string
+  dongName: string
   zonecode: string
 }
 

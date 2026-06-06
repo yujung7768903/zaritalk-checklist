@@ -24,10 +24,10 @@ public class DiagnosisController {
     @GetMapping("/molit/areas")
     public ResponseEntity<AvailableAreasResponse> getAvailableAreas(
             @RequestParam String sigunguCode,
-            @RequestParam String bname,
+            @RequestParam String dongName,
             @RequestParam String housingType
     ) {
-        List<Double> areas = molitApiService.fetchAvailableAreas(sigunguCode, bname, housingType);
+        List<Double> areas = molitApiService.fetchAvailableAreas(sigunguCode, dongName, housingType);
         if (areas.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(new AvailableAreasResponse(areas));
     }
@@ -35,11 +35,11 @@ public class DiagnosisController {
     @GetMapping("/molit/transactions")
     public ResponseEntity<TransactionResponse> getTransactions(
             @RequestParam String sigunguCode,
-            @RequestParam String bname,
+            @RequestParam String dongName,
             @RequestParam String housingType,
             @RequestParam(defaultValue = "0") double area
     ) {
-        MolitApiService.TransactionResult result = molitApiService.fetchRecentAvg(sigunguCode, bname, housingType, area);
+        MolitApiService.TransactionResult result = molitApiService.fetchRecentAvg(sigunguCode, dongName, housingType, area);
         if (result == null) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(new TransactionResponse((long) result.avgPrice(), result.count(), "api"));
     }
