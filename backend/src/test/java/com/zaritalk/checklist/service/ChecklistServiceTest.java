@@ -60,7 +60,7 @@ class ChecklistServiceTest {
     @Test
     @DisplayName("진행 상태가 없으면 빈 목록을 반환한다")
     void 진행_상태_없으면_빈_목록() {
-        List<String> result = checklistService.getCompletedItemIds(99L, ChecklistType.JEONSE_MOVE);
+        List<String> result = checklistService.getCompletedItemIds(99L, ChecklistType.MOVE);
 
         assertThat(result).isEmpty();
     }
@@ -69,10 +69,10 @@ class ChecklistServiceTest {
     @DisplayName("체크리스트 타입이 다르면 진행 상태가 독립적이다")
     void 타입별_진행_상태_독립() {
         checklistService.toggleItem(1L, ChecklistType.NEW_HOME, "registry-check");
-        checklistService.toggleItem(1L, ChecklistType.JEONSE_MOVE, "registry-check");
+        checklistService.toggleItem(1L, ChecklistType.MOVE, "registry-check");
 
         List<String> newHomeResult = checklistService.getCompletedItemIds(1L, ChecklistType.NEW_HOME);
-        List<String> jeonseResult = checklistService.getCompletedItemIds(1L, ChecklistType.JEONSE_MOVE);
+        List<String> jeonseResult = checklistService.getCompletedItemIds(1L, ChecklistType.MOVE);
 
         assertThat(newHomeResult).containsExactly("registry-check");
         assertThat(jeonseResult).containsExactly("registry-check");
