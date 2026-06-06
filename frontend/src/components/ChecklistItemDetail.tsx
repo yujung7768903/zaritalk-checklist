@@ -5,12 +5,10 @@ import type { ChecklistItem } from '../types/checklist'
 
 interface Props {
   item: ChecklistItem | null
-  completed: boolean
   onClose: () => void
-  onToggle: () => void
 }
 
-export default function ChecklistItemDetail({ item, completed, onClose, onToggle }: Props) {
+export default function ChecklistItemDetail({ item, onClose }: Props) {
   const [checkedIndexes, setCheckedIndexes] = useState<Set<number>>(new Set())
 
   useEffect(() => {

@@ -71,7 +71,7 @@ export default function ChecklistPage() {
 
   return (
     <div className="w-full min-h-screen bg-[#F1F3F6]">
-      <div className="w-full max-w-[500px] mx-auto bg-white min-h-screen">
+      <div className="w-full max-w-[640px] mx-auto bg-white min-h-screen">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-white">
           <div className="flex items-center justify-between px-4 pt-12 pb-3">
@@ -132,9 +132,7 @@ export default function ChecklistPage() {
         {/* Item detail bottom sheet */}
         <ChecklistItemDetail
           item={selectedItem}
-          completed={selectedItem ? completedIds.has(selectedItem.id) : false}
           onClose={() => setSelectedItemId(null)}
-          onToggle={() => selectedItem && toggle(selectedItem.id)}
         />
       </div>
     </div>
