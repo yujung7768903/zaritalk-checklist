@@ -25,7 +25,7 @@ const situations = [
 ]
 
 const tools = [
-  { icon: '📊', label: '전세가율 계산기', path: '/calculator', desc: '안전한 전세인지 확인' },
+  { icon: '🔍', label: '안전진단', path: '/diagnosis', desc: '전세·매매·월세 위험 분석' },
   { icon: '📖', label: '용어사전', path: '/glossary', desc: '부동산 용어 한눈에' },
 ]
 
@@ -83,6 +83,22 @@ export default function SituationSelectPage() {
           <p className="mt-2 text-sm text-[#999]">
             상황을 선택하면 맞춤 체크리스트를 보여드릴게요
           </p>
+        </div>
+
+        {/* 안전진단 배너 */}
+        <div className="px-4 pt-4">
+          <div className="bg-[#EBF2FF] rounded-2xl p-5">
+            <p className="text-xs font-semibold text-[#2C7FFF] mb-1">안전진단</p>
+            <p className="text-base font-bold text-[#222] leading-snug mb-3">
+              안전하게 집을 구할 수 있도록<br />도와드릴게요
+            </p>
+            <button
+              onClick={() => navigate('/diagnosis')}
+              className="w-full bg-[#2C7FFF] text-white text-sm font-bold rounded-lg py-3 cursor-pointer"
+            >
+              안전 진단 바로가기
+            </button>
+          </div>
         </div>
 
         {/* Situation cards */}
