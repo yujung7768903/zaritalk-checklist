@@ -1,4 +1,6 @@
-import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import axios from 'axios'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { kakaoLogin } from '../api/authApi'
 
@@ -6,29 +8,19 @@ const situations = [
   {
     type: 'new-home',
     icon: '🏠',
-    title: '새 집 구하기',
-    subtitle: '전세 · 월세 첫 계약',
-    description: '처음으로 독립하거나 새 집을 구하는 경우',
+    title: '첫 집 구하기',
+    description: '처음으로 집을 구하는 경우',
     color: '#2C7FFF',
     bg: '#EBF2FF',
   },
   {
-    type: 'jeonse-move',
-    icon: '🔄',
-    title: '전세 이사',
-    subtitle: '전세에서 전세로',
-    description: '기존 전세 계약을 종료하고 새 전세로 이사하는 경우',
+    type: 'move',
+    icon: '📦',
+    title: '이사하기',
+    // subtitle: '',
+    description: '기존 계약 종료 후 다른 집으로 이사하는 경우',
     color: '#34C759',
     bg: '#E8F8ED',
-  },
-  {
-    type: 'monthly-move',
-    icon: '📋',
-    title: '월세 이사',
-    subtitle: '월세에서 월세로',
-    description: '기존 월세 계약을 종료하고 새 월세로 이사하는 경우',
-    color: '#FF9500',
-    bg: '#FFF4E5',
   },
 ]
 
@@ -40,21 +32,20 @@ const tools = [
 export default function SituationSelectPage() {
   const navigate = useNavigate()
   const { user, login, logout } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  const handleKakaoLogin = () => {
-    window.Kakao.Auth.login({
-      success: async (authObj) => {
-        try {
-          const result = await kakaoLogin(authObj.access_token)
-          login(result)
-        } catch {
-          alert('로그인에 실패했습니다. 잠시 후 다시 시도해주세요.')
-        }
-      },
-      fail: () => {
-        alert('카카오 로그인에 실패했습니다.')
-      },
-    })
+  useEffect(() => {
+    const code = searchParams.get('code')
+    if (!code) return
+    setSearchParams({})
+    kakaoLogin(code)
+      .then(result => login(result))
+      .catch(() => alert('로그인에 실패했습니다. 잠시 후 다시 시도해주세요.'))
+  }, [])
+
+  const handleKakaoLogin = async () => {
+    const { data } = await axios.get('http://localhost:8080/api/v1/auth/kakao/url')
+    window.location.href = data.authUrl
   }
 
   return (
@@ -111,15 +102,7 @@ export default function SituationSelectPage() {
                   {s.icon}
                 </div>
                 <div className="text-left min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-bold text-[#333]">{s.title}</span>
-                    <span
-                      className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
-                      style={{ color: s.color, background: s.bg }}
-                    >
-                      {s.subtitle}
-                    </span>
-                  </div>
+                  <span className="text-sm font-bold text-[#333]">{s.title}</span>
                   <p className="mt-0.5 text-xs text-[#999]">{s.description}</p>
                 </div>
               </div>

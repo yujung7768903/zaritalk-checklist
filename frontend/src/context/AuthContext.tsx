@@ -3,6 +3,7 @@ import { createContext, useContext, useState } from 'react'
 interface AuthUser {
   userPk: number
   nickname: string
+  token: string
 }
 
 interface AuthContextType {
@@ -29,9 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem(AUTH_KEY)
     setUser(null)
-    if (window.Kakao?.Auth?.getAccessToken()) {
-      window.Kakao.Auth.logout()
-    }
   }
 
   return (

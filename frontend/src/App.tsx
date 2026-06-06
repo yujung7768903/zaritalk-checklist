@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import SituationSelectPage from './pages/SituationSelectPage'
@@ -7,13 +6,6 @@ import CalculatorPage from './pages/CalculatorPage'
 import GlossaryPage from './pages/GlossaryPage'
 
 export default function App() {
-  useEffect(() => {
-    const key = import.meta.env.VITE_KAKAO_APP_KEY
-    if (key && window.Kakao && !window.Kakao.isInitialized()) {
-      window.Kakao.init(key)
-    }
-  }, [])
-
   return (
     <AuthProvider>
       <BrowserRouter>

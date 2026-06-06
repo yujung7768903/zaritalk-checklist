@@ -28,3 +28,9 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
 }
+
+#root {
+  max-width: 640px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
