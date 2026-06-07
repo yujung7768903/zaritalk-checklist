@@ -6,7 +6,7 @@ import java.util.List;
  * 전용면적 조회 포트.
  * 건축물대장 API 우선, 결과 없을 시 국토부 실거래가 API fallback.
  */
-public interface AreaLookupPort {
+public interface ExclusiveAreaPort {
 
     /**
      * 주어진 조건으로 전용면적 목록을 조회한다.

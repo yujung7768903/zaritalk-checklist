@@ -2,7 +2,7 @@ package com.zaritalk.api.infrastructure;
 
 import com.zaritalk.api.infrastructure.bldg.BldgLedgerClient;
 import com.zaritalk.api.infrastructure.molit.MolitApiClient;
-import com.zaritalk.core.port.AreaLookupPort;
+import com.zaritalk.core.port.ExclusiveAreaPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +14,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class AreaLookupAdapter implements AreaLookupPort {
+public class ExclusiveAreaAdapter implements ExclusiveAreaPort {
 
     private final BldgLedgerClient bldgLedgerClient;
     private final MolitApiClient   molitApiClient;

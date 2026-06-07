@@ -6,7 +6,7 @@ import java.util.Optional;
  * 시세(실거래가 평균) 조회 포트.
  * 국토부 실거래가 API를 통해 최근 3개월 평균 거래가를 반환한다.
  */
-public interface MarketPriceLookupPort {
+public interface MarketPricePort {
 
     /**
      * 최근 3개월 실거래가 평균을 조회한다.

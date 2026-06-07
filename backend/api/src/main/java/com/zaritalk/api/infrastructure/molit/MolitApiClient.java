@@ -2,6 +2,7 @@ package com.zaritalk.api.infrastructure.molit;
 
 import com.zaritalk.api.infrastructure.molit.dto.MolitApiResponseDto;
 import com.zaritalk.api.infrastructure.molit.dto.MolitTradeItemDto;
+import com.zaritalk.core.port.MarketPricePort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -85,7 +86,7 @@ public class MolitApiClient {
      * @param aptName     건물명 (없으면 빈 문자열)
      * @return 평균가 및 건수; 데이터 없으면 OptionalDouble.empty()
      */
-    public java.util.Optional<com.zaritalk.core.port.MarketPriceLookupPort.MarketPriceResult> fetchRecentAvg(
+    public java.util.Optional<MarketPricePort.MarketPriceResult> fetchRecentAvg(
             String sigunguCode, String dongName, String housingType, double area, String aptName) {
         String baseUrl = selectBaseUrl(housingType);
         List<MolitTradeItemDto> allItems = collectRecentItems(baseUrl, sigunguCode);
@@ -98,7 +99,7 @@ public class MolitApiClient {
         if (prices.isEmpty()) return java.util.Optional.empty();
         OptionalDouble avg = prices.stream().mapToLong(Long::longValue).average();
         return avg.isPresent()
-                ? java.util.Optional.of(new com.zaritalk.core.port.MarketPriceLookupPort.MarketPriceResult(avg.getAsDouble(), prices.size()))
+                ? java.util.Optional.of(new MarketPricePort.MarketPriceResult(avg.getAsDouble(), prices.size()))
                 : java.util.Optional.empty();
     }
 

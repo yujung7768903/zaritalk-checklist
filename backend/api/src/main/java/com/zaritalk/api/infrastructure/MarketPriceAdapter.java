@@ -1,7 +1,7 @@
 package com.zaritalk.api.infrastructure;
 
 import com.zaritalk.api.infrastructure.molit.MolitApiClient;
-import com.zaritalk.core.port.MarketPriceLookupPort;
+import com.zaritalk.core.port.MarketPricePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +13,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class MarketPriceAdapter implements MarketPriceLookupPort {
+public class MarketPriceAdapter implements MarketPricePort {
 
     private final MolitApiClient molitApiClient;
 

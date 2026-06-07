@@ -4,9 +4,8 @@ import com.zaritalk.api.controller.response.AvailableAreasResponse;
 import com.zaritalk.api.controller.response.DiagnosisResponse;
 import com.zaritalk.api.controller.response.TransactionResponse;
 import com.zaritalk.api.service.JwtService;
-import com.zaritalk.core.domain.Diagnosis;
-import com.zaritalk.core.port.AreaLookupPort;
-import com.zaritalk.core.port.MarketPriceLookupPort;
+import com.zaritalk.core.port.ExclusiveAreaPort;
+import com.zaritalk.core.port.MarketPricePort;
 import com.zaritalk.core.service.DiagnosisCommandService;
 import com.zaritalk.core.service.DiagnosisQueryService;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +31,8 @@ public class DiagnosisController {
 
     private final DiagnosisCommandService diagnosisCommandService;
     private final DiagnosisQueryService   diagnosisQueryService;
-    private final AreaLookupPort          areaLookupPort;
-    private final MarketPriceLookupPort   marketPriceLookupPort;
+    private final ExclusiveAreaPort exclusiveAreaPort;
+    private final MarketPricePort marketPricePort;
     private final JwtService              jwtService;
 
     /**
@@ -49,7 +48,7 @@ public class DiagnosisController {
             @RequestParam(required = false, defaultValue = "") String bcode,
             @RequestParam(required = false, defaultValue = "") String jibunAddress
     ) {
-        List<Double> areas = areaLookupPort.fetchAreas(sigunguCode, dongName, housingType, aptName, bcode, jibunAddress);
+        List<Double> areas = exclusiveAreaPort.fetchAreas(sigunguCode, dongName, housingType, aptName, bcode, jibunAddress);
         if (areas.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(new AvailableAreasResponse(areas));
     }
@@ -65,7 +64,7 @@ public class DiagnosisController {
             @RequestParam(defaultValue = "0") double area,
             @RequestParam(required = false, defaultValue = "") String aptName
     ) {
-        return marketPriceLookupPort.fetchRecentAvg(sigunguCode, dongName, housingType, area, aptName)
+        return marketPricePort.fetchRecentAvg(sigunguCode, dongName, housingType, area, aptName)
                 .map(result -> ResponseEntity.ok(new TransactionResponse((long) result.avgPrice(), result.count(), "api")))
                 .orElse(ResponseEntity.noContent().build());
     }
