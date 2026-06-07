@@ -67,3 +67,53 @@ api/infrastructure/
 BldgLedger를 다른 API로 교체해도 `BldgLedgerAdapter`만 바꾸면 된다.  
 fallback 순서가 바뀌어도 `ExclusiveAreaService`만 바꾸면 된다.  
 두 변경 이유가 분리됐다.
+
+---
+
+## Client 클래스를 별도로 둘지 고민: 공유 여부로 판단
+
+### 문제
+
+`BldgLedgerClient` / `MolitApiClient`처럼 HTTP 호출을 담당하는 Client와, 포트를 구현하는 Adapter가 분리되어 있다.  
+Client가 없으면 Adapter가 HTTP 호출까지 직접 수행하는데, 어떤 기준으로 나눌지 판단이 필요했다.
+
+### 채택한 기준: Client가 여러 Adapter에 공유되는가
+
+| | Client 유지 | 이유 |
+|---|---|---|
+| MOLIT | O | `MolitTradeAdapter`(TradeDataPort)와 `MarketPriceAdapter`(MarketPricePort) 두 곳이 공유 |
+| BldgLedger | X → Adapter에 통합 가능 | `BldgLedgerAdapter` 하나만 사용 — Client는 간접 계층만 추가 |
+
+1:1 관계라면 Client는 순수한 우회로다. 공유되는 경우에만 Client를 따로 둔다.
+
+---
+
+## 두 포트에 공통 인터페이스를 둘지 고민
+
+### 문제
+
+`BuildingRegistryPort.fetchAvailableAreas(bcode, jibunAddress)`와  
+`TradeDataPort.fetchAvailableAreas(sigunguCode, dongName, housingType, aptName)` 모두 `List<Double>`을 반환한다.  
+공통 인터페이스로 묶는 방안을 검토했다.
+
+### 기각 이유
+
+파라미터가 완전히 달라서 동일한 시그니처를 만들 수 없다.  
+공통 인터페이스가 유효하려면 두 포트를 교체 가능하게(polymorphic) 다뤄야 하는데,  
+`ExclusiveAreaService`는 각각 다른 입력으로 명시적으로 호출한다.  
+억지로 통일하면 한쪽이 쓰지 않는 파라미터를 받아야 하므로 오히려 오염이다.
+
+---
+
+## 컨트롤러가 포트를 직접 참조하는 것에 대해
+
+### 현황
+
+`DiagnosisController.getTransactions()`는 `MarketPricePort`를 직접 주입받아 사용한다.
+
+### 판단
+
+컨트롤러는 서비스와 대화해야 하고, 포트와의 연결은 서비스가 담당하는 것이 원칙이다 (`Controller → Service → Port`).  
+다만 `MarketPricePort`는 현재 비즈니스 로직이 없는 단순 조회여서, 서비스를 만들면 위임만 하는 보일러플레이트가 된다.
+
+**결론:** 현재는 포트 직접 참조를 허용한다. `MarketPricePort`에 정책이 생기는 시점에 `MarketPriceService`로 올린다.
