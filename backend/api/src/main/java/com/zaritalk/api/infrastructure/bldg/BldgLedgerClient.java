@@ -8,8 +8,9 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
@@ -59,17 +60,19 @@ public class BldgLedgerClient {
         log.info("건축물대장 조회 [sigunguCd={}, bjdongCd={}, bun={}, ji={}]", sigunguCd, bjdongCd, bun, ji);
 
         try {
-            String url = BASE_URL
-                    + "?serviceKey=" + URLEncoder.encode(apiKey, StandardCharsets.UTF_8)
-                    + "&sigunguCd=" + sigunguCd
-                    + "&bjdongCd=" + bjdongCd
-                    + "&bun=" + bun
-                    + "&ji=" + ji
-                    + "&numOfRows=1000"
-                    + "&pageNo=1"
-                    + "&_type=json";
+            URI uri = UriComponentsBuilder.fromHttpUrl(BASE_URL)
+                    .queryParam("serviceKey", apiKey)
+                    .queryParam("sigunguCd", sigunguCd)
+                    .queryParam("bjdongCd", bjdongCd)
+                    .queryParam("bun", bun)
+                    .queryParam("ji", ji)
+                    .queryParam("numOfRows", 1000)
+                    .queryParam("pageNo", 1)
+                    .queryParam("_type", "json")
+                    .build(true)
+                    .toUri();
 
-            BldgLedgerResponseDto res = restTemplate.getForObject(url, BldgLedgerResponseDto.class);
+            BldgLedgerResponseDto res = restTemplate.getForObject(uri, BldgLedgerResponseDto.class);
             List<Double> areas = extractAreas(res);
             log.info("건축물대장 조회 완료 [총 {}건]: {}", areas.size(), areas);
             return areas;

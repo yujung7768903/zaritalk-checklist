@@ -9,8 +9,9 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -112,8 +113,8 @@ public class MolitApiClient {
         for (int i = 0; i < RECENT_MONTHS; i++) {
             String ym = LocalDate.now().minusMonths(i).format(DateTimeFormatter.ofPattern("yyyyMM"));
             try {
-                String url = buildUrl(baseUrl, sigunguCode, ym);
-                MolitApiResponseDto res = restTemplate.getForObject(url, MolitApiResponseDto.class);
+                URI uri = buildUri(baseUrl, sigunguCode, ym);
+                MolitApiResponseDto res = restTemplate.getForObject(uri, MolitApiResponseDto.class);
                 allItems.addAll(resolveItems(res, sigunguCode, ym));
             } catch (Exception e) {
                 log.warn("MOLIT 조회 실패 [sigunguCode={}, ym={}]: {}", sigunguCode, ym, e.getMessage());
@@ -122,13 +123,15 @@ public class MolitApiClient {
         return allItems;
     }
 
-    private String buildUrl(String baseUrl, String sigunguCode, String ym) {
-        return baseUrl
-                + "?serviceKey=" + URLEncoder.encode(apiKey, StandardCharsets.UTF_8)
-                + "&LAWD_CD=" + sigunguCode
-                + "&DEAL_YMD=" + ym
-                + "&numOfRows=100"
-                + "&_type=json";
+    private URI buildUri(String baseUrl, String sigunguCode, String ym) {
+        return UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .queryParam("serviceKey", apiKey)
+                .queryParam("LAWD_CD", sigunguCode)
+                .queryParam("DEAL_YMD", ym)
+                .queryParam("numOfRows", 100)
+                .queryParam("_type", "json")
+                .build(true)
+                .toUri();
     }
 
     private List<MolitTradeItemDto> resolveItems(MolitApiResponseDto res, String sigunguCode, String ym) {
