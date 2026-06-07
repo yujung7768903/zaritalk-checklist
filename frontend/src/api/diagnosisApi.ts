@@ -16,7 +16,7 @@ export async function fetchMarketPrice(
   buildingName?: string,
 ): Promise<TransactionResult | null> {
   try {
-    const res = await axios.get(`${BASE_URL}molit/transactions`, {
+    const res = await axios.get(`${BASE_URL}/molit/transactions`, {
       params: { sigunguCode, dongName, housingType, area, aptName: buildingName },
     })
     return res.data
@@ -35,7 +35,7 @@ export async function fetchAvailableAreas(
   jibunAddress?: string,
 ): Promise<number[]> {
   try {
-    const res = await axios.get(`${BASE_URL}molit/areas`, {
+    const res = await axios.get(`${BASE_URL}/molit/areas`, {
       params: { sigunguCode, dongName, housingType, aptName: buildingName, bcode, jibunAddress },
     })
     return res.data.areas ?? []

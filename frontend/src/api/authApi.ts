@@ -9,6 +9,6 @@ interface LoginResponse {
 }
 
 export async function kakaoLogin(code: string): Promise<LoginResponse> {
-  const res = await axios.post(`${BASE_URL}auth/kakao`, { code })
+  const res = await axios.post(`${BASE_URL}/auth/kakao`, { code })
   return res.data
 }
