@@ -4,6 +4,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { kakaoLogin } from '../api/authApi'
 
+const BASE_URL = import.meta.env.VITE_API_URL
+
 const situations = [
   {
     type: 'new-home',
@@ -44,7 +46,7 @@ export default function SituationSelectPage() {
   }, [])
 
   const handleKakaoLogin = async () => {
-    const { data } = await axios.get('http://localhost:8080/api/v1/auth/kakao/url')
+    const { data } = await axios.get(`${BASE_URL}/auth/kakao/url`)
     window.location.href = data.authUrl
   }
 
