@@ -8,6 +8,8 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -15,6 +17,11 @@ import java.util.List;
 import java.util.OptionalDouble;
 import java.util.TreeSet;
 
+/**
+ * 국토부 실거래가 API 서비스 (아파트/빌라 거래 데이터)
+ * - 전용면적 목록 조회: 건축물대장 API fallback용
+ * - 실거래가 평균 조회: 시세 산정용
+ */
 @Slf4j
 @Service
 public class MolitApiService {
@@ -36,6 +43,10 @@ public class MolitApiService {
 
     public record TransactionResult(double avgPrice, int count) {}
 
+    /**
+     * 최근 3개월 실거래가 평균 조회
+     * 건물명 매칭 우선, 없으면 동 단위 fallback
+     */
     public TransactionResult fetchRecentAvg(String sigunguCode, String dongName, String housingType, double area, String aptName) {
         String baseUrl = "villa".equals(housingType) ? VILLA_URL : APT_URL;
         List<MolitTradeItemDto> allItems = new ArrayList<>();
@@ -61,6 +72,10 @@ public class MolitApiService {
         return avg.isPresent() ? new TransactionResult(avg.getAsDouble(), prices.size()) : null;
     }
 
+    /**
+     * 전용면적 목록 조회 (건축물대장 API 실패 시 fallback으로 사용)
+     * 건물명 매칭 우선, 없으면 동 단위 fallback
+     */
     public List<Double> fetchAvailableAreas(String sigunguCode, String dongName, String housingType, String aptName) {
         log.info("전용면적 조회 시작 [sigunguCode={}, dongName={}, housingType={}, aptName={}]", sigunguCode, dongName, housingType, aptName);
         String baseUrl = "villa".equals(housingType) ? VILLA_URL : APT_URL;
@@ -92,7 +107,7 @@ public class MolitApiService {
 
     private String buildUrl(String baseUrl, String sigunguCode, String ym) {
         return baseUrl
-                + "?serviceKey=" + apiKey
+                + "?serviceKey=" + URLEncoder.encode(apiKey, StandardCharsets.UTF_8)
                 + "&LAWD_CD=" + sigunguCode
                 + "&DEAL_YMD=" + ym
                 + "&numOfRows=100"
@@ -103,7 +118,7 @@ public class MolitApiService {
         List<Double> result = new ArrayList<>();
         for (MolitTradeItemDto row : items) {
             String dong    = nullSafe(row.umdNm());
-            String aptNm   = nullSafe(row.aptNm());
+            String aptNm   = getBuildingName(row);
             String areaStr = nullSafe(row.excluUseAr());
             if (areaStr.isEmpty()) continue;
             if (!matchesDong(dong, dongName)) continue;
@@ -122,7 +137,7 @@ public class MolitApiService {
         List<Long> prices = new ArrayList<>();
         for (MolitTradeItemDto row : items) {
             String dong     = nullSafe(row.umdNm());
-            String aptNm    = nullSafe(row.aptNm());
+            String aptNm    = getBuildingName(row);
             String areaStr  = nullSafe(row.excluUseAr());
             String priceStr = nullSafe(row.dealAmount()).replaceAll("[^0-9]", "");
             if (areaStr.isEmpty() || priceStr.isEmpty()) continue;
@@ -146,7 +161,14 @@ public class MolitApiService {
     private boolean matchesApt(String aptNm, String aptName) {
         String a = normalize(aptNm);
         String b = normalize(aptName);
+        if (a.isEmpty() || b.isEmpty()) return false;
         return a.contains(b) || b.contains(a);
+    }
+
+    // 아파트는 aptNm, 연립다세대는 mhouseNm 사용
+    private String getBuildingName(MolitTradeItemDto row) {
+        String n = nullSafe(row.aptNm());
+        return n.isEmpty() ? nullSafe(row.mhouseNm()) : n;
     }
 
     private String normalize(String s) {
