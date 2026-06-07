@@ -9,7 +9,15 @@ frontend/.env.local
 
 # Backend
 backend/target/
+backend/api/target/
+backend/core/target/
 backend/src/main/resources/application-local.yml
 
 # OS
 .DS_Store
+
+# AI
+.claude/
+
+# Env
+application-local.yml
