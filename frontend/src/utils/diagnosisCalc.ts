@@ -2,7 +2,7 @@ import type {
   JeonseInput, JeonseResult,
   MaemaeInput, MaemaeResult,
   MonthlyInput, MonthlyResult,
-  RiskLevel, CheckItem, AcquisitionCost,
+  RiskLevel, CheckItem, AcquisitionCost, HugCondition,
 } from '../types/diagnosis'
 
 // ── 공통 ──────────────────────────────────────────────────────────────────
@@ -15,45 +15,100 @@ function riskFromRatio(ratio: number): RiskLevel {
 
 // ── 전세 ──────────────────────────────────────────────────────────────────
 
+function isMetropolitan(sigunguCode?: string): boolean {
+  if (!sigunguCode) return false
+  return sigunguCode.startsWith('11') || sigunguCode.startsWith('28') || sigunguCode.startsWith('41')
+}
+
+function buildHugConditions(input: JeonseInput, debtRatio: number): HugCondition[] {
+  const { deposit, mortgage, marketPrice, housingType, address } = input
+  const metro = isMetropolitan(address?.sigunguCode)
+  const depositLimit = metro ? 700_000_000 : 500_000_000
+  const depositLimitLabel = metro ? '수도권 7억원' : '지방 5억원'
+  const seniorLimit = marketPrice * 0.9 * 0.6
+
+  return [
+    {
+      label: `보증금 한도 (${depositLimitLabel} 이하)`,
+      status: deposit <= depositLimit ? 'ok' : 'fail',
+      desc: deposit <= depositLimit
+        ? `${depositLimitLabel} 이하 조건 충족`
+        : `${depositLimitLabel} 초과로 가입 불가`,
+    },
+    {
+      label: '담보인정비율 90% 이내',
+      status: debtRatio <= 90 ? 'ok' : 'fail',
+      desc: debtRatio <= 90
+        ? `(전세금 + 선순위채권) / 시세 = ${debtRatio}%`
+        : `(전세금 + 선순위채권) / 시세 = ${debtRatio}% — 90% 초과로 가입 불가`,
+    },
+    {
+      label: '선순위채권 주택가액의 60% 이내',
+      status: mortgage <= seniorLimit ? 'ok' : 'fail',
+      desc: mortgage <= seniorLimit
+        ? '선순위채권이 주택가액(시세×90%)의 60% 이내'
+        : '선순위채권이 주택가액(시세×90%)의 60% 초과로 가입 불가',
+    },
+    {
+      label: '전입신고 및 확정일자',
+      status: 'check',
+      desc: '신청 주택에 거주하며 전입신고를 하고 확정일자를 받아야 합니다.',
+      link: { label: '정부24', url: 'https://www.gov.kr/mw/AA020InfoCappView.do?CappBizCD=13100000016', menu: '민원서비스 > 민원 찾기 > 검색' },
+    },
+    {
+      label: '등기부등본 권리침해사항 없음',
+      status: 'check',
+      desc: '경매신청·압류·가압류·가처분·가등기 등이 없는지 확인하세요. (등기부등본 갑구)',
+      link: { label: '인터넷등기소', url: 'https://www.iros.go.kr', menu: '메인 > 부동산 열람·발급' },
+    },
+    {
+      label: '건물·토지 임대인 소유',
+      status: 'check',
+      desc: '건물과 토지(대지권) 모두 임대인 소유인지 확인하세요. (등기부등본 표제부)',
+      link: { label: '인터넷등기소', url: 'https://www.iros.go.kr', menu: '메인 > 부동산 열람·발급' },
+    },
+    {
+      label: '전세계약기간 1년 이상',
+      status: 'check',
+      desc: '전세계약서상 계약기간이 1년 이상인지 확인하세요.',
+    },
+    ...(housingType !== 'apt' ? [{
+      label: '위반건축물 아닐 것',
+      status: 'check' as const,
+      desc: '건축물대장상 위반건축물로 기재되지 않았는지 확인하세요.',
+      link: { label: '정부24', url: 'https://www.gov.kr/mw/AA020InfoCappView.do?CappBizCD=15000000098&HighCtgCD=A02004002&tp_seq=01&Mcode=10205', menu: '서비스 > 건축물대장 등·초본 발급' },
+    }] : []),
+    {
+      label: '임대인 보증금지대상자 아닐 것',
+      status: 'check',
+      desc: '임대인이 HUG 보증금지대상자이면 가입이 불가합니다.',
+      link: { label: '안심전세앱', url: 'https://www.khug.or.kr/jeonse/web/s01/s010102.jsp', menu: '안심조회 > 안심임대인 조회' },
+    },
+  ]
+}
+
 export function calcJeonse(input: JeonseInput): JeonseResult {
   const { deposit, mortgage, marketPrice, marketPriceSource } = input
   const jeonsaeRatio = marketPrice > 0 ? Math.round((deposit / marketPrice) * 1000) / 10 : 0
   const debtRatio    = marketPrice > 0 ? Math.round(((mortgage + deposit) / marketPrice) * 1000) / 10 : 0
   const risk         = riskFromRatio(jeonsaeRatio)
-
-  const hugPossible = debtRatio <= 90
-  const hfPossible  = debtRatio <= 100
-  const hugNote = hugPossible
-    ? debtRatio > 87 ? `부채비율 ${debtRatio}%로 HUG 기준(90%) 근접. 추가 근저당 발생 시 불가할 수 있어요.` : `부채비율 ${debtRatio}%로 HUG 기준 충족`
-    : `부채비율 ${debtRatio}%로 HUG 기준(90%) 초과. 전세보증보험 가입이 어려울 수 있어요.`
+  const hugConditions = buildHugConditions(input, debtRatio)
 
   const checklist: CheckItem[] = [
     {
-      status: hugPossible ? 'ok' : 'danger',
-      title: `HUG 전세보증금반환보증 ${hugPossible ? '가입 가능' : '가입 불가'}`,
-      desc: hugNote,
-      link: { label: 'HUG 안심전세', url: 'https://www.khug.or.kr' },
-    },
-    {
       status: 'warn',
       title: '등기부등본 근저당 재확인 필요',
-      desc: '입력한 근저당 금액이 실제 등기부등본과 일치하는지 확인하세요. 추가 근저당이 있으면 부채비율이 달라질 수 있어요.',
+      desc: '입력한 근저당 금액이 실제 등기부등본과 일치하는지 확인하세요. 추가 근저당이 있으면 담보인정비율이 달라질 수 있어요.',
       link: { label: '인터넷등기소', url: 'https://www.iros.go.kr' },
-    },
-    {
-      status: 'info',
-      title: '건축물대장 위반 여부 확인',
-      desc: '위반건축물 이력이 없는지 정부24에서 확인하세요.',
-      link: { label: '정부24', url: 'https://www.gov.kr' },
     },
     {
       status: 'warn',
       title: '임대인 체납세금 확인',
       desc: '계약 전 임대인에게 세금 납부 확인서를 요청하거나, 계약서에 특약으로 명시하세요.',
-    },
+    }
   ]
 
-  return { jeonsaeRatio, debtRatio, risk, hugPossible, hfPossible, hugNote, marketPrice, marketPriceSource, checklist }
+  return { jeonsaeRatio, debtRatio, risk, hugConditions, marketPrice, marketPriceSource, checklist }
 }
 
 // ── 매매 ──────────────────────────────────────────────────────────────────
@@ -236,6 +291,10 @@ export function formatWon(n: number): string {
 
 export function parseNumeric(val: string): number {
   return Number(val.replace(/[^0-9]/g, '')) || 0
+}
+
+export function parseManwon(val: string): number {
+  return parseNumeric(val) * 10_000
 }
 
 export function formatNumericInput(val: string): string {

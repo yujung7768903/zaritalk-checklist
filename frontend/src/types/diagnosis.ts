@@ -8,6 +8,7 @@ export interface AddressInfo {
   sigunguCode: string
   dongName: string
   zonecode: string
+  bcode?: string
   buildingName?: string
 }
 
@@ -61,13 +62,18 @@ export interface AcquisitionCost {
   badgeType?: 'ok' | 'warn' | 'danger' | 'info'
 }
 
+export interface HugCondition {
+  label: string
+  status: 'ok' | 'fail' | 'check'
+  desc: string
+  link?: { label: string; url: string; menu: string }
+}
+
 export interface JeonseResult {
   jeonsaeRatio: number
   debtRatio: number
   risk: RiskLevel
-  hugPossible: boolean
-  hfPossible: boolean
-  hugNote: string
+  hugConditions: HugCondition[]
   marketPrice: number
   marketPriceSource: 'api' | 'manual'
   checklist: CheckItem[]
