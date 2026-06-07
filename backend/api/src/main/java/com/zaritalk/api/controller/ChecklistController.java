@@ -37,7 +37,7 @@ public class ChecklistController {
             @PathVariable String type,
             @RequestHeader("Authorization") String authHeader
     ) {
-        Long userPk = jwtService.extractUserPk(bearerToken(authHeader));
+        Long userPk = jwtService.extractUserPkFromHeader(authHeader);
         ChecklistType checklistType = ChecklistType.fromSlug(type);
         List<String> completedItemIds = checklistQueryService.getCompletedItemIds(userPk, checklistType);
         return ResponseEntity.ok(new CompletedItemsResponse(completedItemIds));
@@ -52,7 +52,7 @@ public class ChecklistController {
             @PathVariable String itemId,
             @RequestHeader("Authorization") String authHeader
     ) {
-        Long userPk = jwtService.extractUserPk(bearerToken(authHeader));
+        Long userPk = jwtService.extractUserPkFromHeader(authHeader);
         ChecklistType checklistType = ChecklistType.fromSlug(type);
         List<String> completedItemIds = checklistCommandService.toggleItem(userPk, checklistType, itemId);
         return ResponseEntity.ok(new CompletedItemsResponse(completedItemIds));
@@ -66,16 +66,11 @@ public class ChecklistController {
             @PathVariable String type,
             @RequestHeader("Authorization") String authHeader
     ) {
-        Long userPk = jwtService.extractUserPk(bearerToken(authHeader));
+        Long userPk = jwtService.extractUserPkFromHeader(authHeader);
         ChecklistType checklistType = ChecklistType.fromSlug(type);
         checklistCommandService.resetProgress(userPk, checklistType);
         return ResponseEntity.noContent().build();
     }
 
-    private String bearerToken(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Authorization 헤더가 없거나 형식이 잘못되었습니다.");
-        }
-        return authHeader.substring(7);
-    }
+
 }

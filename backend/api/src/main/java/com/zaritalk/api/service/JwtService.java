@@ -40,6 +40,17 @@ public class JwtService {
     }
 
     /**
+     * Authorization 헤더에서 사용자 PK를 추출한다.
+     * "Bearer " 접두사를 제거한 뒤 토큰을 검증한다.
+     */
+    public Long extractUserPkFromHeader(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Authorization 헤더가 없거나 형식이 잘못되었습니다.");
+        }
+        return extractUserPk(authHeader.substring(7));
+    }
+
+    /**
      * JWT 토큰에서 사용자 PK를 추출한다.
      * 서명 검증에 실패하면 JwtException을 던진다.
      *
