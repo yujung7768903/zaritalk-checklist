@@ -1,0 +1,261 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.page{padding:1.5rem 0;}
+.section-label{font-size:13px;color:var(--color-text-secondary);font-weight:500;margin-bottom:12px;letter-spacing:.02em;}
+.section-title{font-size:16px;font-weight:500;color:var(--color-text-primary);margin-bottom:1rem;}
+.card{background:var(--color-background-primary);border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.input-group{display:flex;flex-direction:column;gap:6px;}
+.input-group label{font-size:12px;color:var(--color-text-secondary);}
+.input-group input,.input-group select{height:36px;border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:0 12px;font-size:14px;background:var(--color-background-primary);color:var(--color-text-primary);}
+.input-group input:focus,.input-group select:focus{outline:none;border-color:var(--color-border-primary);}
+.analyze-btn{width:100%;height:40px;border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-size:14px;font-weight:500;cursor:pointer;margin-top:4px;}
+.analyze-btn:hover{background:var(--color-background-secondary);}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem;}
+.metric-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;}
+.metric-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:6px;}
+.metric-value{font-size:20px;font-weight:500;color:var(--color-text-primary);}
+.metric-sub{font-size:11px;margin-top:4px;color:var(--color-text-secondary);}
+.overall-banner{border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:1.5rem;border:.5px solid;display:flex;align-items:center;gap:12px;}
+.overall-banner.ok{background:#EAF3DE;border-color:#C0DD97;}
+.overall-banner.warn{background:#FAEEDA;border-color:#FAC775;}
+.overall-banner.danger{background:#FCEBEB;border-color:#F7C1C1;}
+.overall-banner.ok .title{color:#27500A;font-size:15px;font-weight:500;}
+.overall-banner.ok .desc{color:#3B6D11;font-size:13px;margin-top:2px;}
+.overall-banner.warn .title{color:#633806;font-size:15px;font-weight:500;}
+.overall-banner.warn .desc{color:#854F0B;font-size:13px;margin-top:2px;}
+.checklist{display:flex;flex-direction:column;gap:10px;}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:var(--border-radius-md);border:.5px solid var(--color-border-tertiary);}
+.check-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;}
+.check-icon.ok{background:#EAF3DE;color:#3B6D11;}
+.check-icon.warn{background:#FAEEDA;color:#854F0B;}
+.check-icon.danger{background:#FCEBEB;color:#A32D2D;}
+.check-icon.info{background:#E6F1FB;color:#185FA5;}
+.check-text{flex:1;}
+.check-title{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px;}
+.check-desc{font-size:13px;color:var(--color-text-secondary);line-height:1.5;}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:var(--border-radius-md);font-weight:500;margin-left:6px;}
+.badge.ok{background:#EAF3DE;color:#27500A;}
+.badge.warn{background:#FAEEDA;color:#633806;}
+.badge.danger{background:#FCEBEB;color:#A32D2D;}
+.badge.info{background:#E6F1FB;color:#0C447C;}
+.cost-table{width:100%;font-size:13px;border-collapse:collapse;}
+.cost-table td{padding:8px 0;border-bottom:.5px solid var(--color-border-tertiary);}
+.cost-table tr:last-child td{border-bottom:none;}
+.cost-table .label{color:var(--color-text-secondary);}
+.cost-table .value{text-align:right;font-weight:500;color:var(--color-text-primary);}
+.cost-table .total td{font-weight:500;color:var(--color-text-primary);border-top:.5px solid var(--color-border-primary);padding-top:12px;}
+.divider{height:.5px;background:var(--color-border-tertiary);margin:1.5rem 0;}
+.ask-btn{border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-secondary);font-size:13px;padding:8px 14px;cursor:pointer;margin-top:1rem;margin-right:8px;}
+.ask-btn:hover{background:var(--color-background-secondary);color:var(--color-text-primary);}
+.ltv-bar-bg{height:8px;background:var(--color-background-secondary);border-radius:4px;overflow:hidden;margin:8px 0;}
+.ltv-bar{height:100%;border-radius:4px;}
+.gauge-ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-tertiary);}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem;}
+</style>
+
+<h2 class="sr-only">매매 안전 진단 — 주소, 매매가, 대출 조건을 입력하면 LTV 한도, 취득 비용, 규제 지역 여부를 분석합니다</h2>
+
+<div class="page">
+
+  <div class="section-label">매물 정보 입력</div>
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="input-row">
+      <div class="input-group" style="grid-column:1/-1;">
+        <label>주소</label>
+        <input type="text" value="서울시 서초구 잠원동 56-7" />
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>매매 희망가</label>
+        <input type="text" value="9억 원" />
+      </div>
+      <div class="input-group">
+        <label>주택 유형</label>
+        <select>
+          <option>아파트</option>
+          <option>빌라/다세대</option>
+          <option>단독주택</option>
+          <option>오피스텔</option>
+        </select>
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>현재 보유 주택 수</label>
+        <select>
+          <option>0주택 (무주택)</option>
+          <option>1주택</option>
+          <option>2주택 이상</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>연소득</label>
+        <input type="text" value="7,000만 원" />
+      </div>
+    </div>
+    <button class="analyze-btn" onclick="sendPrompt('서초구 잠원동 아파트 9억 매매, 무주택자, 연소득 7천만원 기준으로 대출 한도랑 취득 비용 자세히 분석해줘')">안전 진단하기 ↗</button>
+  </div>
+
+  <div class="section-label">분석 결과</div>
+
+  <div class="overall-banner ok">
+    <i class="ti ti-circle-check" style="font-size:24px;color:#3B6D11;flex-shrink:0;" aria-hidden="true"></i>
+    <div>
+      <div class="title">매매 진행 가능 — 대출 조건 충족</div>
+      <div class="desc">무주택자 기준 LTV·DSR 요건 충족. 취득 비용 포함 총 필요 자금을 확인하세요.</div>
+    </div>
+  </div>
+
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="metric-label">최대 대출 한도</div>
+      <div class="metric-value">3억 6,000만</div>
+      <div class="metric-sub">LTV 40% 기준</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">필요 자기자본</div>
+      <div class="metric-value">5억 6,300만</div>
+      <div class="metric-sub">매매가 + 취득비용 - 대출</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">월 예상 상환액</div>
+      <div class="metric-value">163만 원</div>
+      <div class="metric-sub">30년 원리금균등, 연 4%</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">DSR</div>
+      <div class="metric-value" style="color:#3B6D11;">27.9%</div>
+      <div class="metric-sub">기준 40% 이하 충족</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="section-label" style="margin-bottom:4px;">LTV 한도 현황</div>
+      <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:10px;">투기과열지구 — 40% 적용</div>
+      <div class="ltv-bar-bg">
+        <div class="ltv-bar" style="width:40%;background:#97C459;"></div>
+      </div>
+      <div class="gauge-ticks">
+        <span>0%</span>
+        <span style="color:#3B6D11;">40% 한도</span>
+        <span style="color:#854F0B;">60%</span>
+        <span style="color:#A32D2D;">80%</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label" style="margin-bottom:4px;">DSR 현황</div>
+      <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:10px;">연소득 대비 원리금 상환 비율</div>
+      <div class="ltv-bar-bg">
+        <div class="ltv-bar" style="width:27.9%;background:#97C459;"></div>
+      </div>
+      <div class="gauge-ticks">
+        <span>0%</span>
+        <span style="color:#3B6D11;">27.9% 현재</span>
+        <span style="color:#A32D2D;">40% 한도</span>
+        <span>100%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">취득 비용 계산</div>
+  <div class="card" style="margin-bottom:1.5rem;">
+    <table class="cost-table">
+      <tr>
+        <td class="label">매매가</td>
+        <td class="value">9억 0,000만 원</td>
+      </tr>
+      <tr>
+        <td class="label">취득세 <span class="badge info">1주택 1~3%</span></td>
+        <td class="value">2,700만 원</td>
+      </tr>
+      <tr>
+        <td class="label">중개보수 (0.4%)</td>
+        <td class="value">360만 원</td>
+      </tr>
+      <tr>
+        <td class="label">법무사 비용 (등기)</td>
+        <td class="value">약 80만 원</td>
+      </tr>
+      <tr>
+        <td class="label">이사비 (예상)</td>
+        <td class="value">약 150만 원</td>
+      </tr>
+      <tr class="total">
+        <td class="label">총 필요 금액</td>
+        <td class="value">9억 3,290만 원</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="section-title">규제 및 권리 확인</div>
+  <div class="checklist" style="margin-bottom:1.5rem;">
+    <div class="check-item">
+      <div class="check-icon danger" aria-hidden="true"><i class="ti ti-alert-triangle" style="font-size:12px;"></i></div>
+      <div class="check-text">
+        <div class="check-title">투기과열지구 <span class="badge danger">LTV 40%</span></div>
+        <div class="check-desc">서초구는 투기과열지구로 LTV 40% 제한이 적용돼요. 일반 지역(70~80%) 대비 대출 한도가 크게 줄어요.</div>
+      </div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon warn" aria-hidden="true"><i class="ti ti-alert-triangle" style="font-size:12px;"></i></div>
+      <div class="check-text">
+        <div class="check-title">실거주 의무 확인 필요 <span class="badge warn">주의</span></div>
+        <div class="check-desc">투기과열지구 내 주택 구입 시 실거주 의무가 부과될 수 있어요. 구입 후 전세 임대가 제한될 수 있으니 확인하세요.</div>
+      </div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon ok" aria-hidden="true"><i class="ti ti-check" style="font-size:12px;"></i></div>
+      <div class="check-text">
+        <div class="check-title">등기부등본 이상 없음 <span class="badge ok">정상</span></div>
+        <div class="check-desc">근저당, 가압류, 압류 이력 없음. 소유자와 매도인 일치.</div>
+      </div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon ok" aria-hidden="true"><i class="ti ti-check" style="font-size:12px;"></i></div>
+      <div class="check-text">
+        <div class="check-title">건축물대장 이상 없음 <span class="badge ok">정상</span></div>
+        <div class="check-desc">위반건축물 이력 없음. 주거용 용도 정상 확인.</div>
+      </div>
+    </div>
+    <div class="check-item">
+      <div class="check-icon info" aria-hidden="true"><i class="ti ti-map-pin" style="font-size:12px;"></i></div>
+      <div class="check-text">
+        <div class="check-title">재개발/재건축 여부 <span class="badge info">확인 필요</span></div>
+        <div class="check-desc">토지이용계획 상 정비구역 지정 여부를 확인하세요. 재건축 추진 단지는 투자 가치는 있지만 실거주 계획에 영향을 줄 수 있어요.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-title">가격 적정성</div>
+  <div class="card" style="margin-bottom:1.5rem;">
+    <table class="cost-table">
+      <tr>
+        <td class="label">희망 매매가</td>
+        <td class="value">9억 0,000만 원</td>
+      </tr>
+      <tr>
+        <td class="label">최근 실거래가 (3개월 이내)</td>
+        <td class="value">8억 7,500만 원</td>
+      </tr>
+      <tr>
+        <td class="label">실거래가 대비</td>
+        <td class="value" style="color:#854F0B;">+2,500만 원 (약 +2.9%)</td>
+      </tr>
+      <tr>
+        <td class="label">단지 평균 (동일 평형)</td>
+        <td class="value">8억 9,000만 원</td>
+      </tr>
+    </table>
+  </div>
+
+  <button class="ask-btn" onclick="sendPrompt('이 아파트 취득세 절약할 수 있는 방법 있어?')">취득세 절약 방법 ↗</button>
+  <button class="ask-btn" onclick="sendPrompt('서초구 잠원동 이 아파트 재건축 가능성은 어때?')">재건축 가능성 분석 ↗</button>
+
+</div>
