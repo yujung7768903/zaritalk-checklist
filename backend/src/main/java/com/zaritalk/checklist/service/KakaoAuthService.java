@@ -13,6 +13,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
+/**
+ * 카카오 OAuth 인증 서비스
+ * 인가 코드 → 액세스 토큰 → 사용자 정보 조회 → 로그인/회원가입 처리
+ */
 @Service
 @RequiredArgsConstructor
 public class KakaoAuthService {
@@ -33,6 +37,9 @@ public class KakaoAuthService {
     private final JwtService jwtService;
     private final RestClient restClient = RestClient.create();
 
+    /**
+     * 카카오 로그인 페이지 URL 생성
+     */
     public String getAuthorizationUrl() {
         return UriComponentsBuilder
                 .fromHttpUrl("https://kauth.kakao.com/oauth/authorize")
@@ -43,6 +50,9 @@ public class KakaoAuthService {
                 .toUriString();
     }
 
+    /**
+     * 인가 코드로 로그인 처리 및 JWT 반환
+     */
     public LoginResponse loginWithCode(String code) {
         String accessToken = exchangeCodeForToken(code);
         return loginWithToken(accessToken);

@@ -7,19 +7,27 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * 안전진단 결과 저장 및 조회 서비스
+ */
 @Service
 @RequiredArgsConstructor
 public class DiagnosisService {
 
     private final DiagnosisRepository diagnosisRepository;
 
+    /**
+     * 안전진단 결과 저장 (유형별 최신 1건만 유지)
+     */
     public void save(Long userPk, String type, String inputJson, String resultJson) {
-        // 기존 결과 삭제 후 최신 1건만 유지
         diagnosisRepository.findTopByUserPkAndTypeOrderByCreatedAtDesc(userPk, type)
                 .ifPresent(diagnosisRepository::delete);
         diagnosisRepository.save(Diagnosis.create(userPk, type, inputJson, resultJson));
     }
 
+    /**
+     * 유형별 최신 안전진단 결과 조회
+     */
     public Optional<Diagnosis> getLatest(Long userPk, String type) {
         return diagnosisRepository.findTopByUserPkAndTypeOrderByCreatedAtDesc(userPk, type);
     }

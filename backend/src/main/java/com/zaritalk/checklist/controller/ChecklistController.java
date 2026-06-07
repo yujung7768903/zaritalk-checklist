@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * 이사 체크리스트 진행 상태 컨트롤러
+ */
 @RestController
 @RequestMapping("/api/v1/checklists")
 @RequiredArgsConstructor
@@ -24,6 +27,9 @@ public class ChecklistController {
     private final ChecklistService checklistService;
     private final JwtService jwtService;
 
+    /**
+     * 체크리스트 완료 항목 목록 조회
+     */
     @GetMapping("/{type}/progress")
     public ResponseEntity<CompletedItemsResponse> getProgress(
             @PathVariable String type,
@@ -35,6 +41,9 @@ public class ChecklistController {
         return ResponseEntity.ok(new CompletedItemsResponse(completedItemIds));
     }
 
+    /**
+     * 체크리스트 항목 완료 여부 토글
+     */
     @PutMapping("/{type}/items/{itemId}")
     public ResponseEntity<CompletedItemsResponse> toggleItem(
             @PathVariable String type,
@@ -47,6 +56,9 @@ public class ChecklistController {
         return ResponseEntity.ok(new CompletedItemsResponse(completedItemIds));
     }
 
+    /**
+     * 체크리스트 진행 상태 초기화
+     */
     @DeleteMapping("/{type}/progress")
     public ResponseEntity<Void> resetProgress(
             @PathVariable String type,
