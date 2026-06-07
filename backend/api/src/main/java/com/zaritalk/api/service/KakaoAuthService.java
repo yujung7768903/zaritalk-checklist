@@ -104,12 +104,7 @@ public class KakaoAuthService {
             throw new IllegalStateException("카카오 사용자 정보를 가져올 수 없습니다.");
         }
 
-        String nickname = response.kakaoAccount() != null
-                && response.kakaoAccount().profile() != null
-                ? response.kakaoAccount().profile().nickname()
-                : "사용자";
-
-        return new KakaoUserInfo(response.id(), nickname);
+        return new KakaoUserInfo(response.id(), response.getNickname());
     }
 
     private record KakaoUserInfo(Long id, String nickname) {}
@@ -122,6 +117,11 @@ public class KakaoAuthService {
             Long id,
             @JsonProperty("kakao_account") KakaoAccount kakaoAccount
     ) {
+        String getNickname() {
+            if (kakaoAccount == null || kakaoAccount.profile() == null) return "사용자";
+            return kakaoAccount.profile().nickname();
+        }
+
         @JsonIgnoreProperties(ignoreUnknown = true)
         record KakaoAccount(KakaoProfile profile) {}
 

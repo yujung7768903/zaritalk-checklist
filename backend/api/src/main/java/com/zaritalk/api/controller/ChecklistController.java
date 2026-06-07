@@ -21,7 +21,7 @@ import java.util.List;
  * 이사 체크리스트 진행 상태 컨트롤러.
  */
 @RestController
-@RequestMapping("/api/v1/checklists")
+@RequestMapping("/checklists")
 @RequiredArgsConstructor
 public class ChecklistController {
 

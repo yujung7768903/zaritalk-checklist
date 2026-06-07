@@ -1,7 +1,7 @@
 package com.zaritalk.api.controller;
 
+import com.zaritalk.api.controller.request.DiagnosisRequest;
 import com.zaritalk.api.controller.response.AvailableAreasResponse;
-import com.zaritalk.api.controller.response.DiagnosisResponse;
 import com.zaritalk.api.controller.response.TransactionResponse;
 import com.zaritalk.api.service.JwtService;
 import com.zaritalk.core.port.MarketPricePort;
@@ -25,15 +25,14 @@ import java.util.List;
  * 국토부 실거래가 / 건축물대장 API 연동 및 안전진단 결과 저장/조회를 담당한다.
  */
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping
 @RequiredArgsConstructor
 public class DiagnosisController {
 
     private final DiagnosisCommandService diagnosisCommandService;
-    private final DiagnosisQueryService   diagnosisQueryService;
-    private final ExclusiveAreaService    exclusiveAreaService;
-    private final MarketPricePort         marketPricePort;
-    private final JwtService              jwtService;
+    private final ExclusiveAreaService exclusiveAreaService;
+    private final MarketPricePort marketPricePort;
+    private final JwtService jwtService;
 
     /**
      * 전용면적 목록 조회.
@@ -77,32 +76,10 @@ public class DiagnosisController {
             @RequestHeader("Authorization") String authHeader,
             @RequestBody DiagnosisRequest req
     ) {
-        Long userPk = jwtService.extractUserPk(bearerToken(authHeader));
+        Long userPk = jwtService.extractUserPkFromHeader(authHeader);
         diagnosisCommandService.save(userPk, req.type(), req.inputJson(), req.resultJson());
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * 유형별 최신 안전진단 결과 조회.
-     */
-    @GetMapping("/diagnosis/latest")
-    public ResponseEntity<DiagnosisResponse> getLatest(
-            @RequestHeader("Authorization") String authHeader,
-            @RequestParam String type
-    ) {
-        Long userPk = jwtService.extractUserPk(bearerToken(authHeader));
-        return diagnosisQueryService.getLatest(userPk, type)
-                .map(d -> ResponseEntity.ok(new DiagnosisResponse(
-                        d.getType(), d.getInputJson(), d.getResultJson(), d.getCreatedAt().toString())))
-                .orElse(ResponseEntity.noContent().build());
-    }
 
-    private String bearerToken(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Authorization 헤더가 없거나 형식이 잘못되었습니다.");
-        }
-        return authHeader.substring(7);
-    }
-
-    private record DiagnosisRequest(String type, String inputJson, String resultJson) {}
 }
