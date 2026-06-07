@@ -103,13 +103,7 @@ public class BldgLedgerClient {
     }
 
     private List<BldgLedgerItemDto> resolveItems(BldgLedgerResponseDto res) {
-        try {
-            List<BldgLedgerItemDto> items = res.response().body().items().item();
-            return items != null ? items : List.of();
-        } catch (NullPointerException e) {
-            log.warn("건축물대장 응답 구조 파싱 실패: {}", e.getMessage());
-            return List.of();
-        }
+        return res.getItems();
     }
 
     // "서울 구로구 개봉동 807-19" → ["0807", "0019"]

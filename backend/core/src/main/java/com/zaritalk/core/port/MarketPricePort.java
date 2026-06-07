@@ -22,11 +22,4 @@ public interface MarketPricePort {
     Optional<MarketPriceResult> fetchRecentAvg(String sigunguCode, String dongName,
                                                String housingType, double area, String aptName);
 
-    /**
-     * 실거래가 조회 결과.
-     *
-     * @param avgPrice 평균 거래가 (원)
-     * @param count    거래 건수
-     */
-    record MarketPriceResult(double avgPrice, int count) {}
 }

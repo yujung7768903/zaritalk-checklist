@@ -4,10 +4,10 @@ import com.zaritalk.api.controller.response.AvailableAreasResponse;
 import com.zaritalk.api.controller.response.DiagnosisResponse;
 import com.zaritalk.api.controller.response.TransactionResponse;
 import com.zaritalk.api.service.JwtService;
-import com.zaritalk.core.port.ExclusiveAreaPort;
 import com.zaritalk.core.port.MarketPricePort;
 import com.zaritalk.core.service.DiagnosisCommandService;
 import com.zaritalk.core.service.DiagnosisQueryService;
+import com.zaritalk.core.service.ExclusiveAreaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,8 +31,8 @@ public class DiagnosisController {
 
     private final DiagnosisCommandService diagnosisCommandService;
     private final DiagnosisQueryService   diagnosisQueryService;
-    private final ExclusiveAreaPort exclusiveAreaPort;
-    private final MarketPricePort marketPricePort;
+    private final ExclusiveAreaService    exclusiveAreaService;
+    private final MarketPricePort         marketPricePort;
     private final JwtService              jwtService;
 
     /**
@@ -48,7 +48,7 @@ public class DiagnosisController {
             @RequestParam(required = false, defaultValue = "") String bcode,
             @RequestParam(required = false, defaultValue = "") String jibunAddress
     ) {
-        List<Double> areas = exclusiveAreaPort.fetchAreas(sigunguCode, dongName, housingType, aptName, bcode, jibunAddress);
+        List<Double> areas = exclusiveAreaService.fetchAreas(sigunguCode, dongName, housingType, aptName, bcode, jibunAddress);
         if (areas.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(new AvailableAreasResponse(areas));
     }
