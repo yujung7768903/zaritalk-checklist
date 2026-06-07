@@ -2,9 +2,9 @@ package com.zaritalk.api.infrastructure.bldg;
 
 import com.zaritalk.api.infrastructure.bldg.dto.BldgLedgerItemDto;
 import com.zaritalk.api.infrastructure.bldg.dto.BldgLedgerResponseDto;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class BldgLedgerClient {
 
     private static final String BASE_URL =
@@ -35,13 +36,6 @@ public class BldgLedgerClient {
     private String apiKey;
 
     private final RestTemplate restTemplate;
-
-    public BldgLedgerClient() {
-        RestTemplate rt = new RestTemplate();
-        rt.getMessageConverters().removeIf(c -> c instanceof MappingJackson2HttpMessageConverter);
-        rt.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-        this.restTemplate = rt;
-    }
 
     /**
      * 법정동코드(bcode)와 지번주소로 전용면적 목록을 조회한다.

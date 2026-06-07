@@ -3,9 +3,9 @@ package com.zaritalk.api.infrastructure.molit;
 import com.zaritalk.api.infrastructure.molit.dto.MolitApiResponseDto;
 import com.zaritalk.api.infrastructure.molit.dto.MolitTradeItemDto;
 import com.zaritalk.core.port.MarketPriceResult;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -26,6 +26,7 @@ import java.util.TreeSet;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class MolitApiClient {
 
     private static final String APT_URL   = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade";
@@ -39,13 +40,6 @@ public class MolitApiClient {
     private String apiKey;
 
     private final RestTemplate restTemplate;
-
-    public MolitApiClient() {
-        RestTemplate rt = new RestTemplate();
-        rt.getMessageConverters().removeIf(c -> c instanceof MappingJackson2HttpMessageConverter);
-        rt.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-        this.restTemplate = rt;
-    }
 
     /**
      * 전용면적 목록을 조회한다.
