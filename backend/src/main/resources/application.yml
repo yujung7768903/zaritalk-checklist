@@ -27,5 +27,8 @@ jwt:
 molit:
   api-key: ${MOLIT_API_KEY:}
 
+building:
+  api-key: ${BUILDING_API_KEY:}
+
 server:
   port: 8080

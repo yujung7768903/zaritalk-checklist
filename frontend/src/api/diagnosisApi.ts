@@ -31,10 +31,12 @@ export async function fetchAvailableAreas(
   dongName: string,
   housingType: string,
   buildingName?: string,
+  bcode?: string,
+  jibunAddress?: string,
 ): Promise<number[]> {
   try {
     const res = await axios.get(`${BASE_URL}/api/v1/molit/areas`, {
-      params: { sigunguCode, dongName, housingType, aptName: buildingName },
+      params: { sigunguCode, dongName, housingType, aptName: buildingName, bcode, jibunAddress },
     })
     return res.data.areas ?? []
   } catch {
