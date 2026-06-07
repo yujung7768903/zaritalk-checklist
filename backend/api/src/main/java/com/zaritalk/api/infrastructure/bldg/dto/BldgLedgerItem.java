@@ -1,6 +1,6 @@
 package com.zaritalk.api.infrastructure.bldg.dto;
 
-public record BldgLedgerItemDto(
+public record BldgLedgerItem(
         String area,
         String exposPubuseGbCd,
         String mainPurpsCd,

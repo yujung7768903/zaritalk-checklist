@@ -6,7 +6,7 @@ import com.zaritalk.api.infrastructure.bldg.dto.deserializer.BldgLedgerItemListD
 import java.util.List;
 import java.util.Optional;
 
-public record BldgLedgerResponseDto(
+public record BldgLedgerResponse(
         Response response
 ) {
     public record Response(
@@ -20,10 +20,10 @@ public record BldgLedgerResponseDto(
 
     public record Items(
             @JsonDeserialize(using = BldgLedgerItemListDeserializer.class)
-            List<BldgLedgerItemDto> item
+            List<BldgLedgerItem> item
     ) {}
 
-    public List<BldgLedgerItemDto> getItems() {
+    public List<BldgLedgerItem> getItems() {
         return Optional.ofNullable(response)
                 .map(Response::body)
                 .map(Body::items)

@@ -1,7 +1,7 @@
 package com.zaritalk.api.infrastructure.bldg;
 
-import com.zaritalk.api.infrastructure.bldg.dto.BldgLedgerItemDto;
-import com.zaritalk.api.infrastructure.bldg.dto.BldgLedgerResponseDto;
+import com.zaritalk.api.infrastructure.bldg.dto.BldgLedgerItem;
+import com.zaritalk.api.infrastructure.bldg.dto.BldgLedgerResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,7 +66,7 @@ public class BldgLedgerClient {
                     .build(true)
                     .toUri();
 
-            BldgLedgerResponseDto res = restTemplate.getForObject(uri, BldgLedgerResponseDto.class);
+            BldgLedgerResponse res = restTemplate.getForObject(uri, BldgLedgerResponse.class);
             List<Double> areas = extractAreas(res);
             log.info("건축물대장 조회 완료 [총 {}건]: {}", areas.size(), areas);
             return areas;
@@ -76,10 +76,10 @@ public class BldgLedgerClient {
         }
     }
 
-    private List<Double> extractAreas(BldgLedgerResponseDto res) {
-        List<BldgLedgerItemDto> items = resolveItems(res);
+    private List<Double> extractAreas(BldgLedgerResponse res) {
+        List<BldgLedgerItem> items = resolveItems(res);
         TreeSet<Double> areas = new TreeSet<>();
-        for (BldgLedgerItemDto item : items) {
+        for (BldgLedgerItem item : items) {
             if (!EXCLUSIVE_USE_CODE.equals(item.exposPubuseGbCd())) continue;
             if (!isResidential(item.mainPurpsCd())) {
                 log.debug("비주거 용도 제외 [mainPurpsCd={}, mainPurpsCdNm={}]", item.mainPurpsCd(), item.mainPurpsCdNm());
@@ -96,7 +96,7 @@ public class BldgLedgerClient {
         return new ArrayList<>(areas);
     }
 
-    private List<BldgLedgerItemDto> resolveItems(BldgLedgerResponseDto res) {
+    private List<BldgLedgerItem> resolveItems(BldgLedgerResponse res) {
         return res.getItems();
     }
 

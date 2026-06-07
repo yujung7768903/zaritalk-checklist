@@ -1,7 +1,7 @@
 package com.zaritalk.api.infrastructure.molit;
 
-import com.zaritalk.api.infrastructure.molit.dto.MolitApiResponseDto;
-import com.zaritalk.api.infrastructure.molit.dto.MolitTradeItemDto;
+import com.zaritalk.api.infrastructure.molit.dto.MolitApiResponse;
+import com.zaritalk.api.infrastructure.molit.dto.MolitTradeItem;
 import com.zaritalk.core.port.MarketPriceResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +55,7 @@ public class MolitApiClient {
         log.info("전용면적 조회 시작 [sigunguCode={}, dongName={}, housingType={}, aptName={}]",
                 sigunguCode, dongName, housingType, aptName);
         String baseUrl = selectBaseUrl(housingType);
-        List<MolitTradeItemDto> allItems = collectRecentItems(baseUrl, sigunguCode);
+        List<MolitTradeItem> allItems = collectRecentItems(baseUrl, sigunguCode);
 
         List<Double> byApt = extractAreaValues(allItems, dongName, aptName, true);
         if (!byApt.isEmpty()) {
@@ -84,7 +84,7 @@ public class MolitApiClient {
     public java.util.Optional<MarketPriceResult> fetchRecentAvg(
             String sigunguCode, String dongName, String housingType, double area, String aptName) {
         String baseUrl = selectBaseUrl(housingType);
-        List<MolitTradeItemDto> allItems = collectRecentItems(baseUrl, sigunguCode);
+        List<MolitTradeItem> allItems = collectRecentItems(baseUrl, sigunguCode);
 
         List<Long> prices = extractPrices(allItems, dongName, aptName, area, true);
         if (prices.isEmpty()) {
@@ -102,14 +102,14 @@ public class MolitApiClient {
         return HOUSING_TYPE_VILLA.equals(housingType) ? VILLA_URL : APT_URL;
     }
 
-    private List<MolitTradeItemDto> collectRecentItems(String baseUrl, String sigunguCode) {
-        List<MolitTradeItemDto> allItems = new ArrayList<>();
+    private List<MolitTradeItem> collectRecentItems(String baseUrl, String sigunguCode) {
+        List<MolitTradeItem> allItems = new ArrayList<>();
         for (int i = 0; i < RECENT_MONTHS; i++) {
             String ym = LocalDate.now().minusMonths(i).format(DateTimeFormatter.ofPattern("yyyyMM"));
             try {
                 URI uri = buildUri(baseUrl, sigunguCode, ym);
-                MolitApiResponseDto res = restTemplate.getForObject(uri, MolitApiResponseDto.class);
-                allItems.addAll(resolveItems(res, sigunguCode, ym));
+                MolitApiResponse res = restTemplate.getForObject(uri, MolitApiResponse.class);
+                allItems.addAll(res.getItems());
             } catch (Exception e) {
                 log.warn("MOLIT 조회 실패 [sigunguCode={}, ym={}]: {}", sigunguCode, ym, e.getMessage());
             }
@@ -128,19 +128,9 @@ public class MolitApiClient {
                 .toUri();
     }
 
-    private List<MolitTradeItemDto> resolveItems(MolitApiResponseDto res, String sigunguCode, String ym) {
-        try {
-            List<MolitTradeItemDto> items = res.response().body().items().item();
-            return items != null ? items : List.of();
-        } catch (NullPointerException e) {
-            log.warn("MOLIT 응답 구조 파싱 실패 [sigunguCode={}, ym={}]: {}", sigunguCode, ym, e.getMessage());
-            return List.of();
-        }
-    }
-
-    private List<Double> extractAreaValues(List<MolitTradeItemDto> items, String dongName, String aptName, boolean useAptFilter) {
+    private List<Double> extractAreaValues(List<MolitTradeItem> items, String dongName, String aptName, boolean useAptFilter) {
         List<Double> result = new ArrayList<>();
-        for (MolitTradeItemDto row : items) {
+        for (MolitTradeItem row : items) {
             String dong    = nullSafe(row.umdNm());
             String aptNm   = getBuildingName(row);
             String areaStr = nullSafe(row.excluUseAr());
@@ -157,9 +147,9 @@ public class MolitApiClient {
         return result;
     }
 
-    private List<Long> extractPrices(List<MolitTradeItemDto> items, String dongName, String aptName, double area, boolean useAptFilter) {
+    private List<Long> extractPrices(List<MolitTradeItem> items, String dongName, String aptName, double area, boolean useAptFilter) {
         List<Long> prices = new ArrayList<>();
-        for (MolitTradeItemDto row : items) {
+        for (MolitTradeItem row : items) {
             String dong     = nullSafe(row.umdNm());
             String aptNm    = getBuildingName(row);
             String areaStr  = nullSafe(row.excluUseAr());
@@ -190,7 +180,7 @@ public class MolitApiClient {
     }
 
     // 아파트는 aptNm, 연립다세대는 mhouseNm 사용
-    private String getBuildingName(MolitTradeItemDto row) {
+    private String getBuildingName(MolitTradeItem row) {
         String n = nullSafe(row.aptNm());
         return n.isEmpty() ? nullSafe(row.mhouseNm()) : n;
     }

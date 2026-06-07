@@ -1,6 +1,6 @@
 package com.zaritalk.api.infrastructure.molit.dto;
 
-public record MolitTradeItemDto(
+public record MolitTradeItem(
         String umdNm,
         String aptNm,
         String mhouseNm,
