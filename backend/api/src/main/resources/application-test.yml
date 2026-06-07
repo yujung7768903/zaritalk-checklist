@@ -1,0 +1,10 @@
+kakao:
+  rest-api-key: key
+  client-secret: secret
+  redirect-uri: http://localhost:5174
+
+jwt:
+  secret: secret
+
+molit:
+  api-key: key
