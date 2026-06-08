@@ -1,0 +1,35 @@
+name: Claude Auto-Work on Issue
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  claude-work:
+    if: github.event.label.name == 'claude'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create branch for issue
+        id: create-branch
+        run: |
+          BRANCH="claude/issue-${{ github.event.issue.number }}"
+          git checkout -b "$BRANCH"
+          git push origin "$BRANCH"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Run Claude on issue
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          branch: ${{ steps.create-branch.outputs.branch }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
