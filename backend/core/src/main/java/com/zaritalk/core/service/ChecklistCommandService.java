@@ -47,6 +47,33 @@ public class ChecklistCommandService {
     }
 
     /**
+     * 체크리스트 진행 상태를 저장하고 갱신된 완료 항목 ID 목록을 반환한다.
+     * 기존 진행 상태를 모두 삭제하고 요청된 항목들로 재설정한다.
+     *
+     * @param userPk          사용자 PK
+     * @param type            체크리스트 타입
+     * @param completedItemIds 완료된 항목 ID 목록
+     * @return 갱신된 완료 항목 ID 목록
+     */
+    @Transactional
+    public List<String> saveProgress(Long userPk, ChecklistType type, List<String> completedItemIds) {
+        ChecklistProgress progress = progressRepository.findByUserPkAndChecklistType(userPk, type)
+                .orElseGet(() -> progressRepository.save(ChecklistProgress.create(userPk, type)));
+
+        // 기존 항목들 모두 삭제
+        List<ChecklistItemProgress> existingItems = itemProgressRepository.findByChecklistProgress(progress);
+        itemProgressRepository.deleteAll(existingItems);
+
+        // 새로운 완료 항목들 저장
+        List<ChecklistItemProgress> newItems = completedItemIds.stream()
+                .map(itemId -> ChecklistItemProgress.create(progress, itemId))
+                .toList();
+        itemProgressRepository.saveAll(newItems);
+
+        return checklistQueryService.getCompletedItemIds(userPk, type);
+    }
+
+    /**
      * 체크리스트 진행 상태를 전체 초기화한다.
      * 진행 상태가 없으면 아무 작업도 수행하지 않는다.
      *
