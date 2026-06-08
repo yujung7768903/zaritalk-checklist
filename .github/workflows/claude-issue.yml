@@ -14,19 +14,26 @@ jobs:
       issues: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Create branch for issue
+        id: create-branch
+        run: |
+          BRANCH="claude/issue-${{ github.event.issue.number }}"
+          git checkout -b "$BRANCH"
+          git push origin "$BRANCH"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
       - name: Run Claude on issue
         uses: anthropics/claude-code-action@beta
-        timeout-minutes: 15
-        continue-on-error: true
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          branch: ${{ steps.create-branch.outputs.branch }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          max_turns: "10"
-          system_prompt: "모든 응답은 반드시 한국어로 작성하세요. 이슈 댓글은 한국어로 작성하세요. 코드 수정과 커밋까지만 하세요. PR 생성은 하지 마세요."
+          system_prompt: "모든 응답은 반드시 한국어로 작성하세요."
 
       - name: Create PR and copy labels
         env:
@@ -34,21 +41,8 @@ jobs:
         run: |
           ISSUE_NUMBER="${{ github.event.issue.number }}"
           REPO="${{ github.repository }}"
+          BRANCH="${{ steps.create-branch.outputs.branch }}"
 
-          git fetch --all
-
-          BRANCH=$(git branch -r \
-            | grep "origin/claude/issue-${ISSUE_NUMBER}" \
-            | sort | tail -1 \
-            | sed 's|.*origin/||' | xargs)
-
-          if [ -z "$BRANCH" ]; then
-            echo "No branch found for issue #$ISSUE_NUMBER"
-            exit 0
-          fi
-          echo "Found branch: $BRANCH"
-
-          # 이미 PR이 있으면 스킵
           EXISTING=$(gh pr list --repo "$REPO" --head "$BRANCH" --json number --jq '.[0].number')
           if [ -n "$EXISTING" ] && [ "$EXISTING" != "null" ]; then
             echo "PR #$EXISTING already exists"
@@ -71,5 +65,3 @@ jobs:
             --title "$ISSUE_TITLE" \
             --body "Closes #${ISSUE_NUMBER}" \
             $LABEL_FLAG
-
-          echo "PR created for issue #$ISSUE_NUMBER"
