@@ -1,6 +1,5 @@
 package com.zaritalk.core.service;
 
-import com.zaritalk.core.domain.ChecklistItemProgress;
 import com.zaritalk.core.domain.ChecklistProgress;
 import com.zaritalk.core.domain.ChecklistType;
 import com.zaritalk.core.repository.ChecklistItemProgressRepository;
@@ -30,13 +29,7 @@ public class ChecklistQueryService {
      */
     @Transactional(readOnly = true)
     public List<String> getCompletedItemIds(Long userPk, ChecklistType type) {
-        return progressRepository.findByUserPkAndChecklistType(userPk, type)
-                .map(progress -> itemProgressRepository.findByChecklistProgress(progress)
-                        .stream()
-                        .filter(ChecklistItemProgress::isCompleted)
-                        .map(ChecklistItemProgress::getItemId)
-                        .toList())
-                .orElse(List.of());
+        return itemProgressRepository.findCompletedItemIds(userPk, type);
     }
 
     /**
