@@ -1,28 +1,16 @@
-import { useState, useEffect } from 'react'
 import BottomSheet from './BottomSheet'
 import ExternalLinkButton from './ExternalLinkButton'
 import type { ChecklistItem } from '../types/checklist'
 
 interface Props {
   item: ChecklistItem | null
+  checkedIndexes: Set<number>
+  onToggleCheck: (index: number) => void
   onClose: () => void
 }
 
-export default function ChecklistItemDetail({ item, onClose }: Props) {
-  const [checkedIndexes, setCheckedIndexes] = useState<Set<number>>(new Set())
-
-  useEffect(() => {
-    setCheckedIndexes(new Set())
-  }, [item?.id])
-
+export default function ChecklistItemDetail({ item, checkedIndexes, onToggleCheck, onClose }: Props) {
   if (!item) return null
-
-  const toggleCheck = (i: number) =>
-    setCheckedIndexes(prev => {
-      const next = new Set(prev)
-      next.has(i) ? next.delete(i) : next.add(i)
-      return next
-    })
 
   const title = (
     <span>
@@ -65,7 +53,7 @@ export default function ChecklistItemDetail({ item, onClose }: Props) {
                 <li
                   key={i}
                   className="flex items-center gap-2 text-sm cursor-pointer"
-                  onClick={() => toggleCheck(i)}
+                  onClick={() => onToggleCheck(i)}
                 >
                   <span className={`w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-colors ${
                     checkedIndexes.has(i)

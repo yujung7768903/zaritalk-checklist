@@ -54,6 +54,15 @@ export default function ChecklistPage() {
 
   const { completedIds, toggle, reset } = useChecklist(checklistType)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [subChecks, setSubChecks] = useState<Record<string, Set<number>>>({})
+
+  const toggleSubCheck = (itemId: string, index: number) => {
+    setSubChecks(prev => {
+      const current = new Set(prev[itemId] ?? [])
+      current.has(index) ? current.delete(index) : current.add(index)
+      return { ...prev, [itemId]: current }
+    })
+  }
 
   const allItems = useMemo(() => sections.flatMap(s => s.items), [sections])
   const selectedItem = useMemo(
@@ -132,6 +141,8 @@ export default function ChecklistPage() {
         {/* Item detail bottom sheet */}
         <ChecklistItemDetail
           item={selectedItem}
+          checkedIndexes={selectedItem ? (subChecks[selectedItem.id] ?? new Set()) : new Set()}
+          onToggleCheck={(index) => selectedItem && toggleSubCheck(selectedItem.id, index)}
           onClose={() => setSelectedItemId(null)}
         />
       </div>
