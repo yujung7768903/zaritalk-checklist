@@ -23,29 +23,50 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          system_prompt: |
-            모든 응답은 반드시 한국어로 작성하세요. 이슈 댓글, PR 제목, PR 설명 모두 한국어로 작성하세요.
-            작업 완료 후 반드시 PR을 생성하세요. base 브랜치는 main으로 설정하세요.
+          system_prompt: "모든 응답은 반드시 한국어로 작성하세요. 이슈 댓글은 한국어로 작성하세요. PR은 별도로 생성되므로 직접 만들지 마세요."
 
-      - name: Copy issue labels to PR
+      - name: Create PR and copy labels
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ISSUE_NUMBER="${{ github.event.issue.number }}"
           REPO="${{ github.repository }}"
 
-          PR_NUMBER=$(gh pr list \
-            --repo "$REPO" \
-            --json number,headRefName,createdAt \
-            --jq "[.[] | select(.headRefName | startswith(\"claude/issue-${ISSUE_NUMBER}\"))] | sort_by(.createdAt) | last | .number")
+          git fetch --all
 
-          if [ -n "$PR_NUMBER" ] && [ "$PR_NUMBER" != "null" ]; then
-            LABELS=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json labels \
-              --jq '[.labels[].name] | join(",")')
-            if [ -n "$LABELS" ]; then
-              gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "$LABELS"
-              echo "Applied labels '$LABELS' to PR #$PR_NUMBER"
-            fi
-          else
-            echo "No PR found for issue #$ISSUE_NUMBER"
+          BRANCH=$(git branch -r \
+            | grep "origin/claude/issue-${ISSUE_NUMBER}" \
+            | sort | tail -1 \
+            | sed 's|.*origin/||' | xargs)
+
+          if [ -z "$BRANCH" ]; then
+            echo "No branch found for issue #$ISSUE_NUMBER"
+            exit 0
           fi
+          echo "Found branch: $BRANCH"
+
+          # 이미 PR이 있으면 스킵
+          EXISTING=$(gh pr list --repo "$REPO" --head "$BRANCH" --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ] && [ "$EXISTING" != "null" ]; then
+            echo "PR #$EXISTING already exists"
+            exit 0
+          fi
+
+          ISSUE_TITLE=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json title --jq '.title')
+          LABELS=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json labels \
+            --jq '[.labels[].name] | join(",")')
+
+          LABEL_FLAG=""
+          if [ -n "$LABELS" ]; then
+            LABEL_FLAG="--label $LABELS"
+          fi
+
+          gh pr create \
+            --repo "$REPO" \
+            --head "$BRANCH" \
+            --base main \
+            --title "$ISSUE_TITLE" \
+            --body "Closes #${ISSUE_NUMBER}" \
+            $LABEL_FLAG
+
+          echo "PR created for issue #$ISSUE_NUMBER"
