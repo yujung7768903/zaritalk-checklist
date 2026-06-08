@@ -20,8 +20,8 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           system_prompt: |
-            이슈 댓글은 반드시 한국어로 작성하세요.
-            작업 완료 후 반드시 PR을 생성하세요. PR 제목과 설명은 영어로 작성하고, base 브랜치는 main으로 설정하세요.
+            모든 응답은 반드시 한국어로 작성하세요. 이슈 댓글, PR 제목, PR 설명 모두 한국어로 작성하세요.
+            작업 완료 후 반드시 PR을 생성하세요. base 브랜치는 main으로 설정하세요.
 
       - name: Copy issue labels to PR
         env:
