@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import type { ChecklistType } from '../types/checklist'
+import type { ChecklistType, SituationConfig } from '../types/checklist'
 import { useAuth } from '../context/AuthContext'
 import * as checklistApi from '../api/checklistApi'
 
@@ -15,6 +15,7 @@ export function useChecklist(type: ChecklistType) {
     return stored ? new Set(JSON.parse(stored)) : new Set()
   })
   
+  const [serverSituationConfig, setServerSituationConfig] = useState<SituationConfig | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const serverStateRef = useRef<Set<string>>(new Set())
@@ -24,9 +25,10 @@ export function useChecklist(type: ChecklistType) {
     
     setIsLoading(true)
     checklistApi.getProgress(type, user.token)
-      .then(ids => {
-        const idsSet = new Set(ids)
+      .then(response => {
+        const idsSet = new Set(response.completedItemIds)
         setCompletedIds(idsSet)
+        setServerSituationConfig(response.situationConfig)
         serverStateRef.current = idsSet
         setHasUnsavedChanges(false)
       })
@@ -58,13 +60,16 @@ export function useChecklist(type: ChecklistType) {
     })
   }
 
-  const save = async () => {
+  const save = async (situationConfig?: SituationConfig | null) => {
     if (!user || !hasUnsavedChanges) return
     
     try {
-      const ids = await checklistApi.saveProgress(type, [...completedIds], user.token)
-      const idsSet = new Set(ids)
+      // Use provided config or server config
+      const configToSave = situationConfig !== undefined ? situationConfig : serverSituationConfig
+      const response = await checklistApi.saveProgress(type, [...completedIds], configToSave, user.token)
+      const idsSet = new Set(response.completedItemIds)
       setCompletedIds(idsSet)
+      setServerSituationConfig(response.situationConfig)
       serverStateRef.current = idsSet
       setHasUnsavedChanges(false)
     } catch (error) {
@@ -85,7 +90,7 @@ export function useChecklist(type: ChecklistType) {
     }
   }
 
-  return { completedIds, toggle, reset, save, hasUnsavedChanges, isLoading }
+  return { completedIds, toggle, reset, save, hasUnsavedChanges, isLoading, serverSituationConfig }
 }
 
 function areSetsEqual<T>(a: Set<T>, b: Set<T>): boolean {

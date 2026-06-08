@@ -43,4 +43,21 @@ public class ChecklistQueryService {
     public java.util.Optional<ChecklistProgress> findProgress(Long userPk, ChecklistType type) {
         return progressRepository.findByUserPkAndChecklistType(userPk, type);
     }
+
+    /**
+     * 체크리스트 진행 상태 정보를 조회한다. (완료 항목 + 상황 정보)
+     */
+    public static record ProgressInfo(List<String> completedItemIds, String currentHousing, String nextHousing, String exitType) {}
+
+    @Transactional(readOnly = true)
+    public ProgressInfo getProgressInfo(Long userPk, ChecklistType type) {
+        java.util.Optional<ChecklistProgress> progressOpt = progressRepository.findByUserPkAndChecklistType(userPk, type);
+        if (progressOpt.isEmpty()) {
+            return new ProgressInfo(List.of(), null, null, null);
+        }
+        
+        ChecklistProgress progress = progressOpt.get();
+        List<String> completedIds = itemProgressRepository.findCompletedItemIds(userPk, type);
+        return new ProgressInfo(completedIds, progress.getCurrentHousing(), progress.getNextHousing(), progress.getExitType());
+    }
 }

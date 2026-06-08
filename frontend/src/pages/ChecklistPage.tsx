@@ -3,8 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import type { ChecklistType, ChecklistSection, SituationConfig, SituationCondition } from '../types/checklist'
 import { newHomeSections } from '../constants/checklists/newHome'
 import { moveSections } from '../constants/checklists/move'
-import { useChecklist } from '../hooks/useChecklist'
-import { useSituationConfig } from '../hooks/useSituationConfig'
+import { useChecklistWithSituation } from '../hooks/useChecklistWithSituation'
 import { useAuth } from '../context/AuthContext'
 import ProgressBar from '../components/ProgressBar'
 import ChecklistSectionComp from '../components/ChecklistSection'
@@ -47,14 +46,21 @@ export default function ChecklistPage() {
   const allSections = SECTION_MAP[checklistType] ?? []
   const hasSituationConfig = SITUATION_TYPES.includes(checklistType)
 
-  const { config, saveConfig } = useSituationConfig(checklistType)
+  const { 
+    completedIds, 
+    toggle, 
+    reset, 
+    save, 
+    hasUnsavedChanges, 
+    isLoading,
+    config,
+    saveConfig
+  } = useChecklistWithSituation(checklistType)
 
   const sections = useMemo(
     () => (hasSituationConfig && config ? applyConditions(allSections, config) : allSections),
     [allSections, config, hasSituationConfig]
   )
-
-  const { completedIds, toggle, reset, save, hasUnsavedChanges, isLoading } = useChecklist(checklistType)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [subChecks, setSubChecks] = useState<Record<string, Set<number>>>({})
 
@@ -81,7 +87,7 @@ export default function ChecklistPage() {
   }
 
   const handleSave = async () => {
-    if (!user || !hasUnsavedChanges) return
+    if (!hasUnsavedChanges) return
     
     try {
       await save()
