@@ -16,16 +16,26 @@ export function useChecklist(type: ChecklistType) {
   })
   
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const serverStateRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     if (!user) return
-    checklistApi.getProgress(type, user.token).then(ids => {
-      const idsSet = new Set(ids)
-      setCompletedIds(idsSet)
-      serverStateRef.current = idsSet
-      setHasUnsavedChanges(false)
-    })
+    
+    setIsLoading(true)
+    checklistApi.getProgress(type, user.token)
+      .then(ids => {
+        const idsSet = new Set(ids)
+        setCompletedIds(idsSet)
+        serverStateRef.current = idsSet
+        setHasUnsavedChanges(false)
+      })
+      .catch(error => {
+        console.error('Failed to load progress:', error)
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
   }, [type, user])
 
   useEffect(() => {
@@ -75,7 +85,7 @@ export function useChecklist(type: ChecklistType) {
     }
   }
 
-  return { completedIds, toggle, reset, save, hasUnsavedChanges }
+  return { completedIds, toggle, reset, save, hasUnsavedChanges, isLoading }
 }
 
 function areSetsEqual<T>(a: Set<T>, b: Set<T>): boolean {

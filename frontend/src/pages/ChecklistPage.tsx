@@ -54,7 +54,7 @@ export default function ChecklistPage() {
     [allSections, config, hasSituationConfig]
   )
 
-  const { completedIds, toggle, reset, save, hasUnsavedChanges } = useChecklist(checklistType)
+  const { completedIds, toggle, reset, save, hasUnsavedChanges, isLoading } = useChecklist(checklistType)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [subChecks, setSubChecks] = useState<Record<string, Set<number>>>({})
 
@@ -137,9 +137,17 @@ export default function ChecklistPage() {
           </div>
         )}
 
+        {/* Loading state */}
+        {user && isLoading && (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p className="text-sm text-tertiary">체크리스트를 불러오는 중...</p>
+          </div>
+        )}
+
         {/* Sections */}
         <div className="pt-3 pb-20">
-          {(!hasSituationConfig || config) && sections.map(section => (
+          {(!hasSituationConfig || config) && !isLoading && sections.map(section => (
             <ChecklistSectionComp
               key={section.id}
               section={section}
