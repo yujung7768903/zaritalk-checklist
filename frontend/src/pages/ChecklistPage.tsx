@@ -107,19 +107,9 @@ export default function ChecklistPage() {
             <h1 className="text-base font-bold text-text">
               {TITLE_MAP[checklistType]}
             </h1>
-            <div className="flex items-center gap-1">
-              {user && hasUnsavedChanges && (
-                <button 
-                  onClick={handleSave}
-                  className="text-xs bg-primary text-white px-3 py-1.5 rounded-lg font-medium"
-                >
-                  저장
-                </button>
-              )}
-              <button onClick={handleReset} className="text-xs text-tertiary p-2 -mr-2">
-                초기화
-              </button>
-            </div>
+            <button onClick={handleReset} className="text-xs text-tertiary p-2 -mr-2">
+              초기화
+            </button>
           </div>
           <ProgressBar completed={completedCount} total={totalCount} />
         </div>
@@ -148,7 +138,7 @@ export default function ChecklistPage() {
         )}
 
         {/* Sections */}
-        <div className="pt-3 pb-8">
+        <div className="pt-3 pb-20">
           {(!hasSituationConfig || config) && sections.map(section => (
             <ChecklistSectionComp
               key={section.id}
@@ -159,6 +149,18 @@ export default function ChecklistPage() {
             />
           ))}
         </div>
+
+        {/* Save button at bottom */}
+        {user && (
+          <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-[640px] bg-white border-t border-border px-4 py-3">
+            <button 
+              onClick={handleSave}
+              className="w-full bg-primary text-white py-3 rounded-xl font-medium text-base"
+            >
+              저장
+            </button>
+          </div>
+        )}
 
         {/* Item detail bottom sheet */}
         <ChecklistItemDetail
