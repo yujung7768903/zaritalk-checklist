@@ -5,6 +5,7 @@ import { newHomeSections } from '../constants/checklists/newHome'
 import { moveSections } from '../constants/checklists/move'
 import { useChecklist } from '../hooks/useChecklist'
 import { useSituationConfig } from '../hooks/useSituationConfig'
+import { useAuth } from '../context/AuthContext'
 import ProgressBar from '../components/ProgressBar'
 import ChecklistSectionComp from '../components/ChecklistSection'
 import ChecklistItemDetail from '../components/ChecklistItemDetail'
@@ -41,6 +42,7 @@ function applyConditions(sections: ChecklistSection[], config: SituationConfig):
 export default function ChecklistPage() {
   const { type } = useParams<{ type: string }>()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const checklistType = (type as ChecklistType) ?? 'new-home'
   const allSections = SECTION_MAP[checklistType] ?? []
   const hasSituationConfig = SITUATION_TYPES.includes(checklistType)
@@ -52,7 +54,7 @@ export default function ChecklistPage() {
     [allSections, config, hasSituationConfig]
   )
 
-  const { completedIds, toggle, reset } = useChecklist(checklistType)
+  const { completedIds, toggle, reset, save, hasUnsavedChanges } = useChecklist(checklistType)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [subChecks, setSubChecks] = useState<Record<string, Set<number>>>({})
 
@@ -78,6 +80,16 @@ export default function ChecklistPage() {
     if (confirm('모든 체크 항목을 초기화할까요?')) reset()
   }
 
+  const handleSave = async () => {
+    if (!user || !hasUnsavedChanges) return
+    
+    try {
+      await save()
+    } catch (error) {
+      alert('저장에 실패했습니다. 다시 시도해주세요.')
+    }
+  }
+
   return (
     <div className="w-full min-h-screen bg-bg">
       <div className="w-full max-w-[640px] mx-auto bg-white min-h-screen">
@@ -95,9 +107,19 @@ export default function ChecklistPage() {
             <h1 className="text-base font-bold text-text">
               {TITLE_MAP[checklistType]}
             </h1>
-            <button onClick={handleReset} className="text-xs text-tertiary p-2 -mr-2">
-              초기화
-            </button>
+            <div className="flex items-center gap-1">
+              {user && hasUnsavedChanges && (
+                <button 
+                  onClick={handleSave}
+                  className="text-xs bg-primary text-white px-3 py-1.5 rounded-lg font-medium"
+                >
+                  저장
+                </button>
+              )}
+              <button onClick={handleReset} className="text-xs text-tertiary p-2 -mr-2">
+                초기화
+              </button>
+            </div>
           </div>
           <ProgressBar completed={completedCount} total={totalCount} />
         </div>

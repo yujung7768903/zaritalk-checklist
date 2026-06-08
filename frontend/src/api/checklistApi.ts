@@ -16,6 +16,11 @@ export async function toggleItem(type: string, itemId: string, token: string): P
   return res.data.completedItemIds
 }
 
+export async function saveProgress(type: string, itemIds: string[], token: string): Promise<string[]> {
+  const res = await axios.post(`${BASE_URL}/checklists/${type}/progress`, { completedItemIds: itemIds }, { headers: headers(token) })
+  return res.data.completedItemIds
+}
+
 export async function resetProgress(type: string, token: string): Promise<void> {
   await axios.delete(`${BASE_URL}/checklists/${type}/progress`, { headers: headers(token) })
 }
