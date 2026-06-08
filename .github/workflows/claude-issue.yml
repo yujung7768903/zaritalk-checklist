@@ -19,4 +19,29 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          system_prompt: "모든 응답은 반드시 한국어로 작성하세요. 코드 주석, PR 설명, 이슈 댓글 등 모든 텍스트를 한국어로 작성하세요."
+          system_prompt: |
+            이슈 댓글은 반드시 한국어로 작성하세요.
+            작업 완료 후 반드시 PR을 생성하세요. PR 제목과 설명은 영어로 작성하고, base 브랜치는 main으로 설정하세요.
+
+      - name: Copy issue labels to PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          REPO="${{ github.repository }}"
+
+          PR_NUMBER=$(gh pr list \
+            --repo "$REPO" \
+            --json number,headRefName,createdAt \
+            --jq "[.[] | select(.headRefName | startswith(\"claude/issue-${ISSUE_NUMBER}\"))] | sort_by(.createdAt) | last | .number")
+
+          if [ -n "$PR_NUMBER" ] && [ "$PR_NUMBER" != "null" ]; then
+            LABELS=$(gh issue view "$ISSUE_NUMBER" --repo "$REPO" --json labels \
+              --jq '[.labels[].name] | join(",")')
+            if [ -n "$LABELS" ]; then
+              gh pr edit "$PR_NUMBER" --repo "$REPO" --add-label "$LABELS"
+              echo "Applied labels '$LABELS' to PR #$PR_NUMBER"
+            fi
+          else
+            echo "No PR found for issue #$ISSUE_NUMBER"
+          fi
