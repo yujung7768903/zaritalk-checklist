@@ -52,6 +52,15 @@ function HousingToggle({
   )
 }
 
+function isValidConfig(checklistType: ChecklistType, config: SituationConfig | null): boolean {
+  if (!config || !config.nextHousing) return false
+  if (checklistType !== 'new-home') {
+    if (!config.currentHousing) return false
+    if (config.currentHousing !== 'maemae' && !config.exitType) return false
+  }
+  return true
+}
+
 function configSummary(checklistType: ChecklistType, config: SituationConfig): string {
   if (checklistType === 'new-home') {
     return `${HOUSING_LABEL[config.nextHousing]} 구하기`
@@ -64,8 +73,9 @@ function configSummary(checklistType: ChecklistType, config: SituationConfig): s
 
 export default function SituationSetup({ checklistType, config, onSave }: Props) {
   const isNewHome = checklistType === 'new-home'
+  const hasValidConfig = isValidConfig(checklistType, config)
 
-  const [isEditing, setIsEditing] = useState(!config)
+  const [isEditing, setIsEditing] = useState(!hasValidConfig)
   const [draft, setDraft] = useState<DraftConfig>(config ?? {})
 
   function isValid(): boolean {
@@ -85,7 +95,7 @@ export default function SituationSetup({ checklistType, config, onSave }: Props)
     setIsEditing(false)
   }
 
-  if (!isEditing && config) {
+  if (!isEditing && hasValidConfig && config) {
     return (
       <div className="mx-4 mt-3 mb-1 border border-border rounded-xl px-4 py-3 flex items-center justify-between">
         <div>
