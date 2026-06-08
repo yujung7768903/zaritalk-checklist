@@ -62,10 +62,18 @@ function configSummary(checklistType: ChecklistType, config: SituationConfig): s
   return `${current} → ${next}${exit}`
 }
 
+function isValidConfig(checklistType: ChecklistType, config: SituationConfig): boolean {
+  if (checklistType === 'new-home') {
+    return !!config.nextHousing
+  }
+  return !!config.nextHousing && !!config.currentHousing && (config.currentHousing === 'maemae' || !!config.exitType)
+}
+
 export default function SituationSetup({ checklistType, config, onSave }: Props) {
   const isNewHome = checklistType === 'new-home'
+  const hasValidConfig = config && isValidConfig(checklistType, config)
 
-  const [isEditing, setIsEditing] = useState(!config)
+  const [isEditing, setIsEditing] = useState(!hasValidConfig)
   const [draft, setDraft] = useState<DraftConfig>(config ?? {})
 
   function isValid(): boolean {
@@ -85,13 +93,13 @@ export default function SituationSetup({ checklistType, config, onSave }: Props)
     setIsEditing(false)
   }
 
-  if (!isEditing && config) {
+  if (!isEditing && hasValidConfig) {
     return (
       <div className="mx-4 mt-3 mb-1 border border-border rounded-xl px-4 py-3 flex items-center justify-between">
         <div>
           <p className="text-xs text-tertiary mb-0.5">현재 상황</p>
           <p className="text-sm font-semibold text-text-dark">
-            {configSummary(checklistType, config)}
+            {configSummary(checklistType, config!)}
           </p>
         </div>
         <button
