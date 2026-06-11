@@ -67,9 +67,10 @@ public class ChecklistCommandService {
         // 현재 상황 정보 업데이트
         progress.updateSituationConfig(currentHousing, nextHousing, exitType);
 
-        // 기존 항목들 모두 삭제
+        // 기존 항목들 모두 삭제 (flush로 즉시 반영하여 동일 item_id 재삽입 시 unique 제약 위반 방지)
         List<ChecklistItemProgress> existingItems = itemProgressRepository.findByChecklistProgress(progress);
         itemProgressRepository.deleteAll(existingItems);
+        itemProgressRepository.flush();
 
         // 새로운 완료 항목들 저장
         List<ChecklistItemProgress> newItems = completedItemIds.stream()
