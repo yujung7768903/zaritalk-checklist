@@ -1,6 +1,7 @@
 export const LINKS = {
   IROS: { label: '인터넷등기소', url: 'https://www.iros.go.kr' },
   GOV24: { label: '정부24', url: 'https://www.gov.kr' },
+  KAR_BROKER_SEARCH: { label: '한국공인중개사협회 개업공인중개사', url: 'https://www.kar.or.kr/pinfo/brokersearch.asp' },
   VWORLD: { label: '브이월드', url: 'https://map.vworld.kr' },
   HUG: { label: 'HUG (주택도시보증공사)', url: 'https://www.khug.or.kr' },
   HF: { label: 'HF (한국주택금융공사)', url: 'https://www.hf.go.kr' },

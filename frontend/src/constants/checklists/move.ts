@@ -166,10 +166,10 @@ export const moveSections: ChecklistSection[] = [
         id: 'realtor-check',
         title: '공인중개사 자격 확인',
         why: '무등록 중개업소와의 거래를 방지합니다.',
-        how: ['중개사무소 등록증 확인', '브이월드에서 등록 여부 조회'],
+        how: ['중개사무소 등록증 확인', '한국공인중개사 협회 개업공인중개사 확인'],
         cost: '무료',
         checks: ['등록증 게시 여부', '개업공인중개사 성명', '등록 상태 정상 여부'],
-        links: [LINKS.VWORLD],
+        links: [LINKS.KAR_BROKER_SEARCH],
       },
       {
         id: 'environment-check',
