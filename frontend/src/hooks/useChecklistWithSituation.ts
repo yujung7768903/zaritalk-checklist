@@ -11,14 +11,13 @@ import { useSituationConfig } from './useSituationConfig'
 export function useChecklistWithSituation(type: ChecklistType) {
   const { user } = useAuth()
   const { config: localConfig, saveConfig: saveLocalConfig } = useSituationConfig(type)
-  const { 
-    completedIds, 
-    toggle, 
-    reset, 
-    save: saveChecklist, 
-    hasUnsavedChanges, 
+  const {
+    completedIds,
+    toggle,
+    reset,
+    save: saveChecklist,
     isLoading: checklistLoading,
-    serverSituationConfig 
+    serverSituationConfig
   } = useChecklist(type)
   
   const [isInitialized, setIsInitialized] = useState(!user)
@@ -40,8 +39,8 @@ export function useChecklistWithSituation(type: ChecklistType) {
     }
   }, [user, checklistLoading, serverSituationConfig, saveLocalConfig])
 
-  // 통합된 현재상황 config (서버 우선, 로컬 fallback)
-  const currentConfig = user ? (serverSituationConfig || localConfig) : localConfig
+  // 통합된 현재상황 config: 로그인 사용자는 서버가 source of truth, 비로그인 사용자는 로컬 사용
+  const currentConfig = user ? serverSituationConfig : localConfig
 
   // 현재상황 저장 함수
   const saveSituationConfig = async (config: SituationConfig) => {
@@ -60,8 +59,8 @@ export function useChecklistWithSituation(type: ChecklistType) {
 
   // 체크리스트 저장 (현재 상황과 함께)
   const save = async () => {
-    if (!user || !hasUnsavedChanges) return
-    
+    if (!user) return
+
     try {
       await saveChecklist(currentConfig)
     } catch (error) {
@@ -79,8 +78,7 @@ export function useChecklistWithSituation(type: ChecklistType) {
     toggle,
     reset,
     save,
-    hasUnsavedChanges,
-    
+
     // 현재상황 관련
     config: currentConfig,
     saveConfig: saveSituationConfig,

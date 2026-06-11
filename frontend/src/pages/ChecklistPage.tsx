@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import type { ChecklistType, ChecklistSection, SituationConfig, SituationCondition } from '../types/checklist'
+import type { ChecklistType, ChecklistSection, SituationCondition, SituationValues } from '../types/checklist'
 import { newHomeSections } from '../constants/checklists/newHome'
 import { moveSections } from '../constants/checklists/move'
 import { useChecklistWithSituation } from '../hooks/useChecklistWithSituation'
@@ -22,14 +22,14 @@ const TITLE_MAP = {
 
 const SITUATION_TYPES: ChecklistType[] = ['move', 'new-home']
 
-function matchesSituation(cond: SituationCondition, config: SituationConfig): boolean {
+function matchesSituation(cond: SituationCondition, config: SituationValues): boolean {
   if (cond.currentHousing && config.currentHousing && !cond.currentHousing.includes(config.currentHousing)) return false
   if (cond.nextHousing && !cond.nextHousing.includes(config.nextHousing)) return false
   if (cond.exitType && config.exitType && !cond.exitType.includes(config.exitType)) return false
   return true
 }
 
-function applyConditions(sections: ChecklistSection[], config: SituationConfig): ChecklistSection[] {
+function applyConditions(sections: ChecklistSection[], config: SituationValues): ChecklistSection[] {
   return sections
     .filter(s => !s.showWhen || matchesSituation(s.showWhen, config))
     .map(s => ({
@@ -46,12 +46,11 @@ export default function ChecklistPage() {
   const allSections = SECTION_MAP[checklistType] ?? []
   const hasSituationConfig = SITUATION_TYPES.includes(checklistType)
 
-  const { 
-    completedIds, 
-    toggle, 
-    reset, 
-    save, 
-    hasUnsavedChanges, 
+  const {
+    completedIds,
+    toggle,
+    reset,
+    save,
     isLoading,
     config,
     saveConfig
@@ -87,10 +86,9 @@ export default function ChecklistPage() {
   }
 
   const handleSave = async () => {
-    if (!hasUnsavedChanges) return
-    
     try {
       await save()
+      alert('저장되었습니다.')
     } catch (error) {
       alert('저장에 실패했습니다. 다시 시도해주세요.')
     }
@@ -167,9 +165,9 @@ export default function ChecklistPage() {
         {/* Save button at bottom */}
         {user && (
           <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-[640px] bg-white border-t border-border px-4 py-3">
-            <button 
+            <button
               onClick={handleSave}
-              className="w-full bg-primary text-white py-3 rounded-xl font-medium text-base"
+              className="w-full py-3 rounded-xl font-medium text-base bg-primary text-white cursor-pointer transition-colors"
             >
               저장
             </button>

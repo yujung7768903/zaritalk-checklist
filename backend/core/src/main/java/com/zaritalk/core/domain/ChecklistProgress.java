@@ -66,7 +66,16 @@ public class ChecklistProgress {
     public String getNextHousing() { return nextHousing; }
     public String getExitType() { return exitType; }
 
+    /**
+     * NEW_HOME은 nextHousing만 의미가 있으므로 currentHousing/exitType은 무시하고 null로 저장한다.
+     */
     public void updateSituationConfig(String currentHousing, String nextHousing, String exitType) {
+        if (checklistType == ChecklistType.NEW_HOME) {
+            this.currentHousing = null;
+            this.nextHousing = nextHousing;
+            this.exitType = null;
+            return;
+        }
         this.currentHousing = currentHousing;
         this.nextHousing = nextHousing;
         this.exitType = exitType;
