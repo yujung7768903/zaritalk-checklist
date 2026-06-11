@@ -2,7 +2,7 @@ package com.zaritalk.api.controller;
 
 import com.zaritalk.api.controller.request.KakaoLoginRequest;
 import com.zaritalk.api.controller.response.LoginResponse;
-import com.zaritalk.api.service.KakaoAuthService;
+import com.zaritalk.api.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,14 +21,14 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final KakaoAuthService kakaoAuthService;
+    private final AuthService authService;
 
     /**
      * 카카오 로그인 URL 조회.
      */
     @GetMapping("/kakao/url")
     public ResponseEntity<Map<String, String>> getKakaoAuthUrl() {
-        return ResponseEntity.ok(Map.of("authUrl", kakaoAuthService.getAuthorizationUrl()));
+        return ResponseEntity.ok(Map.of("authUrl", authService.getKakaoAuthorizationUrl()));
     }
 
     /**
@@ -36,7 +36,7 @@ public class AuthController {
      */
     @PostMapping("/kakao")
     public ResponseEntity<LoginResponse> kakaoLogin(@RequestBody KakaoLoginRequest request) {
-        LoginResponse response = kakaoAuthService.loginWithCode(request.code());
+        LoginResponse response = authService.loginWithKakaoCode(request.code());
         return ResponseEntity.ok(response);
     }
 }
