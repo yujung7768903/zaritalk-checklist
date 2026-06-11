@@ -7,6 +7,7 @@ import com.zaritalk.api.service.JwtService;
 import com.zaritalk.core.domain.ChecklistType;
 import com.zaritalk.core.service.ChecklistCommandService;
 import com.zaritalk.core.service.ChecklistQueryService;
+import com.zaritalk.core.service.ProgressInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * 이사 체크리스트 진행 상태 컨트롤러.
@@ -43,15 +42,9 @@ public class ChecklistController {
     ) {
         Long userPk = jwtService.extractUserPkFromHeader(authHeader);
         ChecklistType checklistType = ChecklistType.fromSlug(type);
-        ChecklistQueryService.ProgressInfo info = checklistQueryService.getProgressInfo(userPk, checklistType);
-        
-        SituationConfigDto situationConfig = new SituationConfigDto(
-            info.currentHousing(), 
-            info.nextHousing(), 
-            info.exitType()
-        );
-        
-        return ResponseEntity.ok(new CompletedItemsResponse(info.completedItemIds(), situationConfig));
+        ProgressInfo info = checklistQueryService.getProgressInfo(userPk, checklistType);
+
+        return ResponseEntity.ok(CompletedItemsResponse.from(info));
     }
 
     /**
@@ -65,17 +58,12 @@ public class ChecklistController {
     ) {
         Long userPk = jwtService.extractUserPkFromHeader(authHeader);
         ChecklistType checklistType = ChecklistType.fromSlug(type);
-        List<String> completedItemIds = checklistCommandService.toggleItem(userPk, checklistType, itemId);
-        
+        checklistCommandService.toggleItem(userPk, checklistType, itemId);
+
         // 업데이트 후 전체 정보 조회
-        ChecklistQueryService.ProgressInfo info = checklistQueryService.getProgressInfo(userPk, checklistType);
-        SituationConfigDto situationConfig = new SituationConfigDto(
-            info.currentHousing(), 
-            info.nextHousing(), 
-            info.exitType()
-        );
-        
-        return ResponseEntity.ok(new CompletedItemsResponse(info.completedItemIds(), situationConfig));
+        ProgressInfo info = checklistQueryService.getProgressInfo(userPk, checklistType);
+
+        return ResponseEntity.ok(CompletedItemsResponse.from(info));
     }
 
     /**
@@ -95,20 +83,15 @@ public class ChecklistController {
         String nextHousing = config != null ? config.nextHousing() : null;
         String exitType = config != null ? config.exitType() : null;
         
-        List<String> completedItemIds = checklistCommandService.saveProgress(
+        checklistCommandService.saveProgress(
             userPk, checklistType, request.completedItemIds(),
             currentHousing, nextHousing, exitType
         );
-        
+
         // 저장 후 전체 정보 조회
-        ChecklistQueryService.ProgressInfo info = checklistQueryService.getProgressInfo(userPk, checklistType);
-        SituationConfigDto situationConfig = new SituationConfigDto(
-            info.currentHousing(), 
-            info.nextHousing(), 
-            info.exitType()
-        );
-        
-        return ResponseEntity.ok(new CompletedItemsResponse(info.completedItemIds(), situationConfig));
+        ProgressInfo info = checklistQueryService.getProgressInfo(userPk, checklistType);
+
+        return ResponseEntity.ok(CompletedItemsResponse.from(info));
     }
 
     /**
@@ -124,6 +107,4 @@ public class ChecklistController {
         checklistCommandService.resetProgress(userPk, checklistType);
         return ResponseEntity.noContent().build();
     }
-
-
 }
