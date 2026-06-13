@@ -7,12 +7,21 @@ function storageKey(type: ChecklistType) {
   return `checklist-${type}`
 }
 
+function memoStorageKey(type: ChecklistType) {
+  return `checklist-${type}-memos`
+}
+
 export function useChecklist(type: ChecklistType) {
   const { user } = useAuth()
 
   const [completedIds, setCompletedIds] = useState<Set<string>>(() => {
     const stored = localStorage.getItem(storageKey(type))
     return stored ? new Set(JSON.parse(stored)) : new Set()
+  })
+
+  const [itemMemos, setItemMemos] = useState<Record<string, string>>(() => {
+    const stored = localStorage.getItem(memoStorageKey(type))
+    return stored ? JSON.parse(stored) : {}
   })
 
   const [serverSituationConfig, setServerSituationConfig] = useState<SituationConfig | null>(null)
@@ -25,6 +34,7 @@ export function useChecklist(type: ChecklistType) {
     checklistApi.getProgress(type, user.token)
       .then(response => {
         setCompletedIds(new Set(response.completedItemIds))
+        setItemMemos(response.itemMemos)
         setServerSituationConfig(response.situationConfig)
       })
       .catch(error => {
@@ -40,10 +50,27 @@ export function useChecklist(type: ChecklistType) {
     localStorage.setItem(storageKey(type), JSON.stringify([...completedIds]))
   }, [type, completedIds, user])
 
+  useEffect(() => {
+    if (user) return
+    localStorage.setItem(memoStorageKey(type), JSON.stringify(itemMemos))
+  }, [type, itemMemos, user])
+
   const toggle = (itemId: string) => {
     setCompletedIds(prev => {
       const next = new Set(prev)
       next.has(itemId) ? next.delete(itemId) : next.add(itemId)
+      return next
+    })
+  }
+
+  const setMemo = (itemId: string, memo: string) => {
+    setItemMemos(prev => {
+      const next = { ...prev }
+      if (memo.trim()) {
+        next[itemId] = memo
+      } else {
+        delete next[itemId]
+      }
       return next
     })
   }
@@ -54,8 +81,9 @@ export function useChecklist(type: ChecklistType) {
     try {
       // Use provided config or server config
       const configToSave = situationConfig !== undefined ? situationConfig : serverSituationConfig
-      const response = await checklistApi.saveProgress(type, [...completedIds], configToSave, user.token)
+      const response = await checklistApi.saveProgress(type, [...completedIds], itemMemos, configToSave, user.token)
       setCompletedIds(new Set(response.completedItemIds))
+      setItemMemos(response.itemMemos)
       setServerSituationConfig(response.situationConfig)
     } catch (error) {
       console.error('Failed to save progress:', error)
@@ -67,11 +95,13 @@ export function useChecklist(type: ChecklistType) {
     if (user) {
       checklistApi.resetProgress(type, user.token).then(() => {
         setCompletedIds(new Set())
+        setItemMemos({})
       })
     } else {
       setCompletedIds(new Set())
+      setItemMemos({})
     }
   }
 
-  return { completedIds, toggle, reset, save, isLoading, serverSituationConfig }
+  return { completedIds, itemMemos, toggle, setMemo, reset, save, isLoading, serverSituationConfig }
 }

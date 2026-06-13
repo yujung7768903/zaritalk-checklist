@@ -32,11 +32,23 @@ public class ChecklistItemProgress {
     @Column(name = "completed", nullable = false)
     private boolean completed;
 
+    @Column(name = "memo", length = 1000)
+    private String memo;
+
     public static ChecklistItemProgress create(ChecklistProgress progress, String itemId) {
         ChecklistItemProgress item = new ChecklistItemProgress();
         item.checklistProgress = progress;
         item.itemId = itemId;
         item.completed = true;
+        return item;
+    }
+
+    public static ChecklistItemProgress of(ChecklistProgress progress, String itemId, boolean completed, String memo) {
+        ChecklistItemProgress item = new ChecklistItemProgress();
+        item.checklistProgress = progress;
+        item.itemId = itemId;
+        item.completed = completed;
+        item.memo = memo;
         return item;
     }
 
@@ -46,4 +58,5 @@ public class ChecklistItemProgress {
 
     public String getItemId() { return itemId; }
     public boolean isCompleted() { return completed; }
+    public String getMemo() { return memo; }
 }

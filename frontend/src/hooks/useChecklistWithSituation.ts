@@ -13,7 +13,9 @@ export function useChecklistWithSituation(type: ChecklistType) {
   const { config: localConfig, saveConfig: saveLocalConfig } = useSituationConfig(type)
   const {
     completedIds,
+    itemMemos,
     toggle,
+    setMemo,
     reset,
     save: saveChecklist,
     isLoading: checklistLoading,
@@ -75,7 +77,9 @@ export function useChecklistWithSituation(type: ChecklistType) {
   return {
     // 체크리스트 관련
     completedIds,
+    itemMemos,
     toggle,
+    setMemo,
     reset,
     save,
 

@@ -10,6 +10,7 @@ function headers(token: string) {
 
 export interface ChecklistProgressResponse {
   completedItemIds: string[]
+  itemMemos: Record<string, string>
   situationConfig: SituationConfig | null
 }
 
@@ -17,6 +18,7 @@ export async function getProgress(type: ChecklistType, token: string): Promise<C
   const res = await axios.get(`${BASE_URL}/checklists/${type}/progress`, { headers: headers(token) })
   return {
     completedItemIds: res.data.completedItemIds,
+    itemMemos: res.data.itemMemos ?? {},
     situationConfig: parseSituationConfig(type, res.data.situationConfig)
   }
 }
@@ -25,17 +27,20 @@ export async function toggleItem(type: ChecklistType, itemId: string, token: str
   const res = await axios.put(`${BASE_URL}/checklists/${type}/items/${itemId}`, null, { headers: headers(token) })
   return {
     completedItemIds: res.data.completedItemIds,
+    itemMemos: res.data.itemMemos ?? {},
     situationConfig: parseSituationConfig(type, res.data.situationConfig)
   }
 }
 
-export async function saveProgress(type: ChecklistType, itemIds: string[], situationConfig: SituationConfig | null, token: string): Promise<ChecklistProgressResponse> {
+export async function saveProgress(type: ChecklistType, itemIds: string[], itemMemos: Record<string, string>, situationConfig: SituationConfig | null, token: string): Promise<ChecklistProgressResponse> {
   const res = await axios.post(`${BASE_URL}/checklists/${type}/progress`, {
     completedItemIds: itemIds,
+    itemMemos: itemMemos,
     situationConfig: situationConfig
   }, { headers: headers(token) })
   return {
     completedItemIds: res.data.completedItemIds,
+    itemMemos: res.data.itemMemos ?? {},
     situationConfig: parseSituationConfig(type, res.data.situationConfig)
   }
 }

@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 /**
  * 이사 체크리스트 진행 상태 컨트롤러.
  */
@@ -82,9 +84,10 @@ public class ChecklistController {
         String currentHousing = config != null ? config.currentHousing() : null;
         String nextHousing = config != null ? config.nextHousing() : null;
         String exitType = config != null ? config.exitType() : null;
-        
+        Map<String, String> itemMemos = request.itemMemos() != null ? request.itemMemos() : Map.of();
+
         checklistCommandService.saveProgress(
-            userPk, checklistType, request.completedItemIds(),
+            userPk, checklistType, request.completedItemIds(), itemMemos,
             currentHousing, nextHousing, exitType
         );
 

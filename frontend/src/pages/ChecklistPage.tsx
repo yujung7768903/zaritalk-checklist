@@ -48,7 +48,9 @@ export default function ChecklistPage() {
 
   const {
     completedIds,
+    itemMemos,
     toggle,
+    setMemo,
     reset,
     save,
     isLoading,
@@ -180,6 +182,8 @@ export default function ChecklistPage() {
           checkedIndexes={selectedItem ? (subChecks[selectedItem.id] ?? new Set()) : new Set()}
           onToggleCheck={(index) => selectedItem && toggleSubCheck(selectedItem.id, index)}
           onClose={() => setSelectedItemId(null)}
+          memo={selectedItem ? (itemMemos[selectedItem.id] ?? '') : ''}
+          onMemoChange={(memo) => selectedItem && setMemo(selectedItem.id, memo)}
         />
       </div>
     </div>

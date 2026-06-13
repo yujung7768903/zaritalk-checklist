@@ -1,5 +1,6 @@
 package com.zaritalk.core.service;
 
+import com.zaritalk.core.domain.ChecklistItemProgress;
 import com.zaritalk.core.domain.ChecklistProgress;
 import com.zaritalk.core.domain.ChecklistType;
 import com.zaritalk.core.repository.ChecklistItemProgressRepository;
@@ -9,6 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 체크리스트 진행 상태 조회 서비스.
@@ -40,22 +44,25 @@ public class ChecklistQueryService {
      * @return 진행 상태; 없으면 Optional.empty()
      */
     @Transactional(readOnly = true)
-    public java.util.Optional<ChecklistProgress> findProgress(Long userPk, ChecklistType type) {
+    public Optional<ChecklistProgress> findProgress(Long userPk, ChecklistType type) {
         return progressRepository.findByUserPkAndChecklistType(userPk, type);
     }
 
     /**
-     * 체크리스트 진행 상태 정보를 조회한다. (완료 항목 + 상황 정보)
+     * 체크리스트 진행 상태 정보를 조회한다. (완료 항목 + 메모 + 상황 정보)
      */
     @Transactional(readOnly = true)
     public ProgressInfo getProgressInfo(Long userPk, ChecklistType type) {
-        java.util.Optional<ChecklistProgress> progressOpt = progressRepository.findByUserPkAndChecklistType(userPk, type);
+        Optional<ChecklistProgress> progressOpt = progressRepository.findByUserPkAndChecklistType(userPk, type);
         if (progressOpt.isEmpty()) {
-            return new ProgressInfo(List.of(), null, null, null);
+            return new ProgressInfo(List.of(), Map.of(), null, null, null);
         }
-        
+
         ChecklistProgress progress = progressOpt.get();
         List<String> completedIds = itemProgressRepository.findCompletedItemIds(userPk, type);
-        return new ProgressInfo(completedIds, progress.getCurrentHousing(), progress.getNextHousing(), progress.getExitType());
+        Map<String, String> itemMemos = itemProgressRepository.findByChecklistProgress(progress).stream()
+                .filter(item -> item.getMemo() != null && !item.getMemo().isBlank())
+                .collect(Collectors.toMap(ChecklistItemProgress::getItemId, ChecklistItemProgress::getMemo));
+        return new ProgressInfo(completedIds, itemMemos, progress.getCurrentHousing(), progress.getNextHousing(), progress.getExitType());
     }
 }

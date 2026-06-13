@@ -1,5 +1,6 @@
 import BottomSheet from './BottomSheet'
 import ExternalLinkButton from './ExternalLinkButton'
+import { useAuth } from '../context/AuthContext'
 import type { ChecklistItem } from '../types/checklist'
 
 interface Props {
@@ -7,9 +8,12 @@ interface Props {
   checkedIndexes: Set<number>
   onToggleCheck: (index: number) => void
   onClose: () => void
+  memo: string
+  onMemoChange: (memo: string) => void
 }
 
-export default function ChecklistItemDetail({ item, checkedIndexes, onToggleCheck, onClose }: Props) {
+export default function ChecklistItemDetail({ item, checkedIndexes, onToggleCheck, onClose, memo, onMemoChange }: Props) {
+  const { user } = useAuth()
   if (!item) return null
 
   const title = (
@@ -21,7 +25,7 @@ export default function ChecklistItemDetail({ item, checkedIndexes, onToggleChec
 
   return (
     <BottomSheet open={!!item} onClose={onClose} title={title}>
-      <div className="px-[22px] pt-5 pb-10">
+      <div className="px-[22px] pt-5 pb-6 h-full flex flex-col">
 
         <div className="space-y-4">
           <section>
@@ -92,6 +96,17 @@ export default function ChecklistItemDetail({ item, checkedIndexes, onToggleChec
             </section>
           )}
         </div>
+
+        <section className="flex flex-col flex-1 min-h-[120px] mt-4 pb-4">
+          <p className="text-xs font-semibold text-tertiary uppercase tracking-wide mb-1.5 shrink-0">메모</p>
+          <textarea
+              value={memo}
+              onChange={(e) => onMemoChange(e.target.value)}
+              placeholder={user ? '메모를 입력하세요' : '로그인 후 메모를 작성할 수 있습니다'}
+              disabled={!user}
+              className="w-full flex-1 text-sm text-text bg-subtle rounded-xl p-3 resize-none border border-border focus:outline-none focus:border-primary disabled:bg-border disabled:text-tertiary disabled:cursor-not-allowed"
+          />
+        </section>
       </div>
     </BottomSheet>
   )
